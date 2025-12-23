@@ -173,13 +173,15 @@
             loadQuestion();
         }
 
-        function sendResults() {
-            tg.sendData(`من مسابقه رو با امتیاز نهایی ${score}/10 تموم کردم!`);
+           function sendResults() {
+            // ارسال فقط عدد امتیاز یا یک متن مشخص
+            tg.sendData("امتیاز نهایی: " + score);
         }
 
         loadQuestion();
     </script>
 </body>
 </html>
+
 
 
