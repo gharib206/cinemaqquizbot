@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        :root {
+            --tg-theme-bg: var(--tg-theme-bg-color, #ffffff);
+            --tg-theme-text: var(--tg-theme-text-color, #222222);
+            --tg-theme-btn: var(--tg-theme-button-color, #248bed);
+            --tg-theme-btn-text: var(--tg-theme-button-text-color, #ffffff);
+            --tg-theme-sec-bg: var(--tg-theme-secondary-bg-color, #f4f4f5);
+        }
+        body { background-color: var(--tg-theme-bg); color: var(--tg-theme-text); font-family: sans-serif; margin: 0; padding: 20px; text-align: center; }
+        .card { background: var(--tg-theme-sec-bg); padding: 20px; border-radius: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); margin-top: 20px; }
+        .option-btn { display: block; width: 100%; padding: 12px; margin: 10px 0; border: none; border-radius: 10px; background: var(--tg-theme-bg); color: var(--tg-theme-text); border: 1px solid var(--tg-theme-btn); cursor: pointer; font-size: 16px; }
+        .option-btn:active { background: var(--tg-theme-btn); color: var(--tg-theme-btn-text); }
+        .progress { font-size: 14px; color: gray; margin-bottom: 10px; }
+        .hidden { display: none; }
+    </style>
+</head>
+<body>
+
+    <div id="quiz-container">
+        <div class="progress">مرحله <span id="level-num">۱</span> - سوال <span id="q-num">۱</span> از ۱۰</div>
+        <div class="card">
+            <h3 id="question-text">در حال بارگذاری...</h3>
+            <div id="options-container"></div>
+        </div>
+    </div>
+
+    <div id="result-container" class="hidden">
+        <div class="card">
+            <h2 id="result-title">پایان مرحله!</h2>
+            <p id="result-text"></p>
+            <button class="option-btn" id="next-level-btn" onclick="startLevel2()">شروع مرحله دوم</button>
+        </div>
+    </div>
+
+    <script>
+        const tg = window.Telegram.WebApp;
+        tg.expand();
+
+        const questionsLevel1 = [
+            { q: "اولین انیمیشن بلند تاریخ؟", options: ["پینوکیو", "سفیدبرفی", "فانتزیا", "دامبو"], correct: 1 },
+            { q: "کارگردان فهرست شیندلر؟", options: ["نولان", "اسکورسیزی", "اسپیلبرگ", "کامرون"], correct: 2 },
+            // برای تست، فعلاً ۲ سوال گذاشتم، شما می‌توانید تا ۱۰ سوال ادامه دهید
+        ];
+
+        const questionsLevel2 = [
+            { q: "اولین اسکار سینمای ایران؟", options: ["فروشنده", "طعم گیلاس", "جدایی نادر از سیمین", "بچه‌های آسمان"], correct: 2 },
+            { q: "بازیگر نقش جوکر در شوالیه تاریکی؟", options: ["هیت لجر", "واکین فینیکس", "جک نیکلسون", "جرد لتو"], correct: 0 },
+        ];
+
+        let currentLevel = 1;
+        let currentQuestionIndex = 0;
+        let score = 0;
+
+        function loadQuestion() {
+            const questions = currentLevel === 1 ? questionsLevel1 : questionsLevel2;
+            const q = questions[currentQuestionIndex];
+            
+            document.getElementById("level-num").innerText = currentLevel;
+            document.getElementById("q-num").innerText = currentQuestionIndex + 1;
+            document.getElementById("question-text").innerText = q.q;
+            
+            const optionsDiv = document.getElementById("options-container");
+            optionsDiv.innerHTML = "";
+            
+            q.options.forEach((opt, index) => {
+                const btn = document.createElement("button");
+                btn.className = "option-btn";
+                btn.innerText = opt;
+                btn.onclick = () => checkAnswer(index);
+                optionsDiv.appendChild(btn);
+            });
+        }
+
+        function checkAnswer(index) {
+            const questions = currentLevel === 1 ? questionsLevel1 : questionsLevel2;
+            if (index === questions[currentQuestionIndex].correct) {
+                score++;
+                tg.HapticFeedback.notificationOccurred('success');
+            } else {
+                tg.HapticFeedback.notificationOccurred('error');
+            }
+
+            currentQuestionIndex++;
+            if (currentQuestionIndex < questions.length) {
+                loadQuestion();
+            } else {
+                showResults();
+            }
+        }
+
+        function showResults() {
+            document.getElementById("quiz-container").classList.add("hidden");
+            document.getElementById("result-container").classList.remove("hidden");
+            
+            const resultText = `شما به ${score} سوال از ۱۰ سوال پاسخ درست دادید.`;
+            document.getElementById("result-text").innerText = resultText;
+
+            if (currentLevel === 1) {
+                document.getElementById("next-level-btn").innerText = "شروع مرحله دوم";
+            } else {
+                document.getElementById("next-level-btn").innerText = "ارسال نتایج به ربات";
+                document.getElementById("next-level-btn").onclick = sendResults;
+            }
+        }
+
+        function startLevel2() {
+            currentLevel = 2;
+            currentQuestionIndex = 0;
+            score = 0;
+            document.getElementById("quiz-container").classList.remove("hidden");
+            document.getElementById("result-container").classList.add("hidden");
+            loadQuestion();
+        }
+
+        function sendResults() {
+            tg.sendData("من هر دو مرحله مسابقه سینمایی رو تموم کردم!");
+        }
+
+        loadQuestion();
+    </script>
+</body>
+</html>
