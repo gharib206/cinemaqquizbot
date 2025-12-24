@@ -14,11 +14,11 @@
             --color-correct: #31b545;
             --color-wrong: #f54242;
         }
-        body { background-color: var(--tg-theme-bg); color: var(--tg-theme-text); font-family: sans-serif; margin: 0; padding: 20px; text-align: center; overflow-x: hidden; }
+        body { background-color: var(--tg-theme-bg); color: var(--tg-theme-text); font-family: sans-serif; margin: 0; padding: 20px; text-align: center; overflow-x: hidden; user-select: none; }
         .progress-container { width: 100%; background: #e0e0e0; height: 10px; border-radius: 10px; margin-bottom: 20px; overflow: hidden; }
         .progress-bar { height: 100%; background: var(--tg-theme-btn); width: 0%; transition: width 0.3s ease; }
         .card { background: var(--tg-theme-sec-bg); padding: 20px; border-radius: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); margin-top: 10px; }
-        .option-btn { display: block; width: 100%; padding: 14px; margin: 10px 0; border: none; border-radius: 12px; background: var(--tg-theme-bg); color: var(--tg-theme-text); border: 1px solid rgba(0,0,0,0.1); cursor: pointer; font-size: 16px; transition: all 0.2s ease; font-weight: 500; }
+        .option-btn { display: block; width: 100%; padding: 14px; margin: 10px 0; border: none; border-radius: 12px; background: var(--tg-theme-bg); color: var(--tg-theme-text); border: 1px solid rgba(0,0,0,0.1); cursor: pointer; font-size: 16px; transition: all 0.2s ease; font-weight: 500; outline: none; }
         .correct { background-color: var(--color-correct) !important; color: white !important; border-color: var(--color-correct) !important; }
         .wrong { background-color: var(--color-wrong) !important; color: white !important; border-color: var(--color-wrong) !important; }
         .hidden { display: none; }
@@ -28,7 +28,7 @@
 <body>
 
     <div id="loading-screen">
-        <div style="font-size: 18px; font-weight: bold; margin-bottom: 10px;">در حال تنظیم صدا و سوالات... <span id="percent">0%</span></div>
+        <div style="font-size: 18px; font-weight: bold; margin-bottom: 10px;">در حال آماده‌سازی ۱۰۰ چالش سینمایی... <span id="percent">0%</span></div>
         <div class="progress-container" style="width: 70%;">
             <div id="loading-bar" class="progress-bar"></div>
         </div>
@@ -56,20 +56,12 @@
     <script>
         const tg = window.Telegram.WebApp;
         tg.expand();
+        tg.enableClosingConfirmation();
 
-        // تعریف فایل‌های صوتی جدید و با کیفیت
-const soundCorrect = new Audio('https://actions.google.com/sounds/v1/foley/refrigerator_door_close.ogg'); 
-// (یا یک صدای دینگ دیجیتالی)
-const soundCorrectBetter = new Audio('https://www.myinstants.com/media/sounds/correct.mp3');
-
-const soundWrong = new Audio('https://www.myinstants.com/media/sounds/wrong_pX8l6uA.mp3');
-
-const soundFinish = new Audio('https://www.myinstants.com/media/sounds/level-up-191.mp3');
-
-// تنظیم حجم صدا (برای اینکه کاربر اذیت نشود)
-soundCorrectBetter.volume = 0.5;
-soundWrong.volume = 0.4;
-soundFinish.volume = 0.6;
+        // صداهای جدید و با کیفیت
+        const sndCorrect = new Audio('https://rpg.hamsterrepublic.com/ohrrpgce/sounds/confirm.wav');
+        const sndWrong = new Audio('https://rpg.hamsterrepublic.com/ohrrpgce/sounds/cancel.wav');
+        const sndFinish = new Audio('https://rpg.hamsterrepublic.com/ohrrpgce/sounds/victory.wav');
 
         const masterBank = [
             { q: "اولین انیمیشن بلند تاریخ سینما؟", options: ["پینوکیو", "سفیدبرفی", "بامبی", "سیندرلا"], correct: 1 },
@@ -81,216 +73,203 @@ soundFinish.volume = 0.6;
             { q: "طولانی‌ترین فیلم برنده اسکار بهترین فیلم؟", options: ["بن هور", "بربادرفته", "تایتانیک", "پدرخوانده"], correct: 1 },
             { q: "اولین برنده اسکار بهترین فیلم (۱۹۲۹)؟", options: ["بال‌ها", "متروپولیس", "طلوع", "خواننده جاز"], correct: 0 },
             { q: "فارست گامپ چه چیزی به مردم تعارف می‌کرد؟", options: ["سیب", "نوشابه", "شکلات", "میگو"], correct: 2 },
-            { q: "حلقه یگانه در کجا ساخته شد؟", options: ["ریوندل", "موردور (کوه نابودی)", "گاندور", "شایر"], correct: 1 },
+            { q: "حلقه یگانه در کجا ساخته شد؟", options: ["ریوندل", "کوه نابودی", "گاندور", "شایر"], correct: 1 },
             { q: "اولین فیلم ایرانی برنده اسکار؟", options: ["طعم گیلاس", "فروشنده", "جدایی نادر از سیمین", "بچه‌های آسمان"], correct: 2 },
             { q: "کارگردان فیلم 'روانی' (Psycho)؟", options: ["هیچکاک", "کوبریک", "ولز", "فورد"], correct: 0 },
             { q: "سلاح جک تورنس در فیلم 'درخشش'؟", options: ["چاقو", "تبر", "اره برقی", "تفنگ"], correct: 1 },
             { q: "اولین فیلم دنیای سینمایی مارول؟", options: ["ثور", "کاپیتان آمریکا", "مرد آهنی", "هالک"], correct: 2 },
             { q: "نئو در ماتریکس کدام قرص را خورد؟", options: ["قرمز", "آبی", "سبز", "زرد"], correct: 0 },
-            { q: "کارگردان سه‌گانه 'پدرخوانده'؟", options: ["اسکورسیزی", "فرانسیس فورد کاپولا", "دی‌پالما", "لمت"], correct: 1 },
+            { q: "کارگردان سه‌گانه 'پدرخوانده'؟", options: ["اسکورسیزی", "کاپولا", "دی‌پالما", "لمت"], correct: 1 },
             { q: "فیلم 'انگل' محصول کدام کشور است؟", options: ["ژاپن", "چین", "کره جنوبی", "ویتنام"], correct: 2 },
-            { q: "نام هوش مصنوعی در '۲۰۰۱: یک اودیسه فضایی'؟", options: ["HAL 9000", "TARS", "R2D2", "Jarvis"], correct: 0 },
-            { q: "در پالپ فیکشن، داخل کیف چه بود؟", options: ["طلا", "الماس", "مشخص نشد", "اسلحه"], correct: 2 },
+            { q: "نام هوش مصنوعی در '۲۰۰۱: اودیسه فضایی'؟", options: ["HAL 9000", "TARS", "R2D2", "Jarvis"], correct: 0 },
+            { q: "در پالپ فیکشن، داخل کیف چه بود؟", options: ["طلا", "الماس", "نامعلوم", "اسلحه"], correct: 2 },
             { q: "بازیگر نقش 'ولورین' در مردان ایکس؟", options: ["تام هاردی", "هیو جکمن", "برد پیت", "کریس ایوانز"], correct: 1 },
             { q: "کارگردان 'میان‌ستاره‌ای' (Interstellar)؟", options: ["نولان", "ویلنوو", "رایمی", "بایل"], correct: 0 },
             { q: "برنده نخل طلای ۱۹۹۷ برای ایران؟", options: ["خانه دوست کجاست", "طعم گیلاس", "زیر درختان زیتون", "ده"], correct: 1 },
             { q: "کدام فیلم بیشترین اسکار را برده (۱۱ اسکار)؟", options: ["ارباب حلقه‌ها ۳", "اوپنهایمر", "گلادیاتور", "شجاع دل"], correct: 0 },
             { q: "نام ربات کوچک در 'جنگ ستارگان'؟", options: ["BB-8", "R2-D2", "C-3PO", "Wall-E"], correct: 1 },
-            { q: "بازیگر نقش فارست گامپ؟", options: ["تام هنکس", "رابرت دنیرو", "ال پاچینو", "داستین هافمن"], correct: 0 },
-            { q: "فیلم 'همشهری کین' اثر کیست؟", options: ["جان فورد", "اورسن ولز", "هاوارد هاکس", "هیچکاک"], correct: 1 },
+            { q: "بازیگر نقش فارست گامپ؟", options: ["تام هنکس", "دنیرو", "پاچینو", "هافمن"], correct: 0 },
+            { q: "فیلم 'همشهری کین' اثر کیست؟", options: ["فورد", "اورسن ولز", "هاکس", "هیچکاک"], correct: 1 },
             { q: "قهرمان فیلم 'گلادیاتور'؟", options: ["ماکسیموس", "کومودوس", "لئونیداس", "اسپارتاکوس"], correct: 0 },
-            { q: "ژانر فیلم 'نوسفراتو' (Nosferatu)؟", options: ["کمدی", "وحشت", "علمی تخیلی", "وسترن"], correct: 1 },
-            { q: "نام بازیگر نقش 'مایکل کورلئونه'؟", options: ["رابرت دنیرو", "ال پاچینو", "مارلون براندو", "جیمز کان"], correct: 1 },
-            { q: "اولین فیلم انیمیشن پیکسار؟", options: ["داستان اسباب‌بازی", "شرکت هیولاها", "زندگی یک حشره", "ماشین‌ها"], correct: 0 },
-            { q: "کارگردان فیلم 'هفت سامورایی'؟", options: ["اوذو", "میزوگوچی", "کوروساوا", "کیتانو"], correct: 2 },
-            { q: "دیالوگ 'I'm gonna make him an offer he can't refuse' مربوط به کدام فیلم است؟", options: ["رفقای خوب", "صورت زخمی", "پدرخوانده", "کازینو"], correct: 2 },
-            { q: "بازیگر نقش 'ترمیناتور'؟", options: ["استالونه", "آرنولد شوارتزنگر", "بروس ویلیس", "ون دام"], correct: 1 },
-            { q: "موضوع فیلم 'تلقین' (Inception)؟", options: ["سفر در زمان", "ورود به رویا", "بیگانگان", "هوش مصنوعی"], correct: 1 },
+            { q: "ژانر فیلم 'نوسفراتو' (Nosferatu)؟", options: ["کمدی", "وحشت", "تخیلی", "وسترن"], correct: 1 },
+            { q: "نام بازیگر نقش 'مایکل کورلئونه'؟", options: ["دنیرو", "ال پاچینو", "براندو", "کان"], correct: 1 },
+            { q: "اولین فیلم انیمیشن پیکسار؟", options: ["Toy Story", "Monsters Inc", "A Bug's Life", "Cars"], correct: 0 },
+            { q: "کارگردان 'هفت سامورایی'؟", options: ["اوذو", "میزوگوچی", "آکیرا کوروساوا", "کیتانو"], correct: 2 },
+            { q: "دیالوگ 'پیشنهادی که نتونه رد کنه' مال کیست؟", options: ["تونی مونتانا", "ویتو کورلئونه", "هنری هیل", "نیکی سانتورو"], correct: 1 },
+            { q: "بازیگر نقش 'ترمیناتور'؟", options: ["استالونه", "شوارتزنگر", "ویلیس", "ون دام"], correct: 1 },
+            { q: "موضوع اصلی فیلم 'تلقین'؟", options: ["سفر زمان", "رویا در رویا", "بیگانگان", "ارواح"], correct: 1 },
             { q: "برنده اسکار بهترین انیمیشن ۲۰۲۳؟", options: ["پسر و مرغ ماهیخوار", "مرد عنکبوتی", "المنتال", "ماریو"], correct: 0 },
-            { q: "نام کارگردان 'تارانتینو' در کدام فیلم با رقص مشهور شد؟", options: ["سگ‌های انباری", "داستان عامه‌پسند", "بیل را بکش", "جنگوی زنجیرگسسته"], correct: 1 },
-            { q: "بازیگر نقش 'جک اسپارو'؟", options: ["جانی دپ", "برد پیت", "تام کروز", "اورلاندو بلوم"], correct: 0 },
-            { q: "فیلم 'متروپولیس' محصول کدام کشور است؟", options: ["فرانسه", "آلمان", "روسیه", "آمریکا"], correct: 1 },
-            { q: "بازیگر نقش 'هری پاتر'؟", options: ["روپرت گرینت", "دنیل ردکلیف", "تام فلتون", "رابرت پتینسون"], correct: 1 },
-            { q: "کارگردان فیلم 'انگل'؟", options: ["پارک چان-ووک", "بونگ جون-هو", "کیم کی-دوک", "هونگ سانگ-سو"], correct: 1 },
-            { q: "دیالوگ 'Why so serious?' مربوط به کیست؟", options: ["بتمن", "جوکر", "بین", "هارلی کویین"], correct: 1 },
-            { q: "فیلم '۱۲ مرد خشمگین' در کجا روایت می‌شود؟", options: ["زندان", "یک اتاق", "خیابان", "دادگاه"], correct: 1 },
-            { q: "نام شهر در فیلم 'هفت' (Se7en)؟", options: ["نیویورک", "شیکاگو", "نامی برده نمی‌شود", "لس آنجلس"], correct: 2 },
-            { q: "قهرمان فیلم 'شجاع دل'؟", options: ["ویلیام والاس", "رابرت بروس", "ریچارد شیردل", "شاه لیر"], correct: 0 },
-            { q: "اولین فیلم بلند 'عباس کیارستمی'؟", options: ["مسافر", "گزارش", "تجربه", "لباسی برای عروسی"], correct: 1 },
-            { q: "بازیگر زن فیلم 'لالالند'؟", options: ["اما واتسون", "اما استون", "جنیفر لارنس", "مارگو رابی"], correct: 1 },
-            { q: "کارگردان فیلم 'برخورد نزدیک از نوع سوم'؟", options: ["لوکاس", "اسپیلبرگ", "نولان", "اسکات"], correct: 1 },
+            { q: "رقص مشهور جان تراولتا در کدام فیلم تارانتینو است؟", options: ["سگ‌های انباری", "داستان عامه‌پسند", "بیل را بکش", "جنگو"], correct: 1 },
+            { q: "بازیگر نقش 'جک اسپارو'؟", options: ["جانی دپ", "برد پیت", "تام کروز", "بلوم"], correct: 0 },
+            { q: "فیلم 'متروپولیس' محصول کجاست؟", options: ["فرانسه", "آلمان", "روسیه", "آمریکا"], correct: 1 },
+            { q: "بازیگر نقش 'هری پاتر'؟", options: ["ردکلیف", "گرینت", "فلتون", "پتینسون"], correct: 0 },
+            { q: "کارگردان فیلم 'انگل'؟", options: ["پارک چان", "بونگ جون-هو", "کیم کی-دوک", "هونگ"], correct: 1 },
+            { q: "دیالوگ 'Why so serious' از کیست؟", options: ["بتمن", "جوکر", "بین", "پنگوئن"], correct: 1 },
+            { q: "فیلم '۱۲ مرد خشمگین' کجا می‌گذرد؟", options: ["زندان", "یک اتاق", "خیابان", "پارک"], correct: 1 },
+            { q: "شهر فیلم 'هفت' (Se7en)؟", options: ["نیویورک", "شیکاگو", "نامعلوم", "لس آنجلس"], correct: 2 },
+            { q: "قهرمان 'شجاع دل'؟", options: ["ویلیام والاس", "رابرت بروس", "ریچارد", "لیر"], correct: 0 },
+            { q: "اولین فیلم بلند 'کیارستمی'؟", options: ["مسافر", "گزارش", "تجربه", "نان و کوچه"], correct: 1 },
+            { q: "بازیگر زن 'لالالند'؟", options: ["واتسون", "اما استون", "لارنس", "رابی"], correct: 1 },
+            { q: "کارگردان 'برخورد نزدیک از نوع سوم'؟", options: ["لوکاس", "اسپیلبرگ", "نولان", "اسکات"], correct: 1 },
             { q: "فیلم 'راننده تاکسی' اثر کیست؟", options: ["کاپولا", "اسکورسیزی", "پاچینو", "دنیرو"], correct: 1 },
-            { q: "نام کوتوله در 'ارباب حلقه‌ها'؟", options: ["گیملی", "لگولاس", "آراگورن", "بورومیر"], correct: 0 },
-            { q: "بازیگر نقش 'آیرون من'؟", options: ["کریس همسورث", "رابرت داونی جونیور", "مارک رافلو", "کریس ایوانز"], correct: 1 },
-            { q: "فیلم 'سکوت بره‌ها' چه ژانری دارد؟", options: ["کمدی", "وحشت/جنایی", "تخیلی", "تاریخی"], correct: 1 },
-            { q: "کارگردان 'آواتار'؟", options: ["جیمز کامرون", "ریدلی اسکات", "زک اسنایدر", "مایکل بی"], correct: 0 },
-            { q: "نام سیاره در فیلم 'تل‌ماسه' (Dune)؟", options: ["تاتویین", "آراکیس", "پاندورا", "کریپتون"], correct: 1 },
-            { q: "فیلم 'گاو' اثر کدام کارگردان است؟", options: ["کیمیایی", "مهرجویی", "تقوایی", "بیضایی"], correct: 1 },
-            { q: "برنده اسکار بهترین فیلم ۲۰۲۴؟", options: ["اوپنهایمر", "باربی", "قاتلان ماه کامل", "بیچارگان"], correct: 0 },
-            { q: "نام شخصیت اصلی 'داستان اسباب‌بازی'؟", options: ["وودی", "باز لایتیر", "سیدی", "اندی"], correct: 0 },
-            { q: "بازیگر نقش 'جان ویک'؟", options: ["تام هاردی", "کیانو ریوز", "جیسون استاتهام", "نیکلاس کیج"], correct: 1 },
-            { q: "فیلم 'اودیسه فضایی' محصول چه سالی است؟", options: ["۱۹۶۸", "۱۹۷۵", "۱۹۸۰", "۱۹۶۰"], correct: 0 },
-            { q: "کدام کارگردان به 'استاد وحشت' معروف است؟", options: ["آلفرد هیچکاک", "جان کارپنتر", "وس کریون", "جیمز وان"], correct: 0 },
-            { q: "نام سگ در 'جادوگر شهر از'؟", options: ["توتو", "لاسو", "رکس", "اسنوپی"], correct: 0 },
-            { q: "فیلم 'باشگاه مشت‌زنی' اثر کیست؟", options: ["فینچر", "نولان", "آرونوفسکی", "بویل"], correct: 0 },
+            { q: "نام کوتوله 'ارباب حلقه‌ها'؟", options: ["گیملی", "لگولاس", "آراگورن", "فرودو"], correct: 0 },
+            { q: "بازیگر 'آیرون من'؟", options: ["همسورث", "رابرت داونی جونیور", "رافلو", "ایوانز"], correct: 1 },
+            { q: "فیلم 'سکوت بره‌ها' چه ژانری است؟", options: ["کمدی", "وحشت روانشناختی", "تخیلی", "اکشن"], correct: 1 },
+            { q: "کارگردان 'آواتار'؟", options: ["جیمز کامرون", "اسکات", "اسنایدر", "بی"], correct: 0 },
+            { q: "سیاره اصلی در 'تل‌ماسه'؟", options: ["تاتویین", "آراکیس", "پاندورا", "کریپتون"], correct: 1 },
+            { q: "فیلم 'گاو' اثر کیست؟", options: ["کیمیایی", "داریوش مهرجویی", "تقوایی", "حاتمی"], correct: 1 },
+            { q: "برنده اسکار بهترین فیلم ۲۰۲۴؟", options: ["اوپنهایمر", "باربی", "قاتلان ماه", "بیچارگان"], correct: 0 },
+            { q: "نام گاوچران در داستان اسباب‌بازی؟", options: ["وودی", "باز", "سیدی", "رکس"], correct: 0 },
+            { q: "بازیگر نقش 'جان ویک'؟", options: ["تام هاردی", "کیانو ریوز", "استاتهام", "کیج"], correct: 1 },
+            { q: "فیلم 'اودیسه فضایی' مال چه سالی است؟", options: ["۱۹۶۸", "۱۹۷۵", "۱۹۸۰", "۱۹۶۰"], correct: 0 },
+            { q: "کدام کارگردان 'استاد تعلیق' است؟", options: ["هیچکاک", "کارپنتر", "کریون", "وان"], correct: 0 },
+            { q: "نام سگ 'جادوگر شهر از'؟", options: ["توتو", "لاسو", "رکس", "اسنوپی"], correct: 0 },
+            { q: "فیلم 'باشگاه مشت‌زنی' اثر کیست؟", options: ["دیوید فینچر", "نولان", "آرونوفسکی", "بویل"], correct: 0 },
             { q: "دیالوگ 'Here's Johnny' در کدام فیلم است؟", options: ["روانی", "درخشش", "هالووین", "اره"], correct: 1 },
-            { q: "نام کشتی در فیلم 'بیگانه' (Alien)؟", options: ["نوسترومو", "اینترپرایز", "میلنیوم فالکون", "دیسکاوری"], correct: 0 },
-            { q: "اولین فیلم رنگی تاریخ؟", options: ["بربادرفته", "جادوگر شهر از", "بکی شارپ", "سفیدبرفی"], correct: 2 },
-            { q: "بازیگر نقش 'شرلوک هولمز' (فیلم گای ریچی)؟", options: ["بندیکت کامبربچ", "رابرت داونی جونیور", "جود لا", "هنری کویل"], correct: 1 },
-            { q: "فیلم 'همشهری کین' درباره زندگی کیست؟", options: ["یک سیاستمدار", "یک غول رسانه‌ای", "یک بازیگر", "یک نویسنده"], correct: 1 },
-            { q: "کارگردان فیلم 'سرگیجه' (Vertigo)؟", options: ["هیچکاک", "ولز", "وایلد", "هاکس"], correct: 0 },
-            { q: "فیلم 'مردی که زیاد می‌دانست' اثر کیست؟", options: ["هیچکاک", "تروفو", "گودار", "برگمان"], correct: 0 },
-            { q: "در 'تایتانیک' نام الماس چه بود؟", options: ["قلب اقیانوس", "ستاره آفریقا", "الماس کوه نور", "خورشید شب"], correct: 0 },
-            { q: "فیلم 'ابد و یک روز' اثر کیست؟", options: ["سعید روستایی", "هومن سیدی", "اصغر فرهادی", "مانی حقیقی"], correct: 0 },
+            { q: "نام کشتی در فیلم 'بیگانه'؟", options: ["نوسترومو", "اینترپرایز", "فالکون", "دیسکاوری"], correct: 0 },
+            { q: "اولین فیلم رنگی کامل؟", options: ["بربادرفته", "جادوگر شهر از", "بکی شارپ", "سفیدبرفی"], correct: 2 },
+            { q: "بازیگر 'شرلوک هولمز' گای ریچی؟", options: ["کامبربچ", "رابرت داونی جونیور", "لا", "کویل"], correct: 1 },
+            { q: "همشهری کین درباره کیست؟", options: ["سیاستمدار", "غول رسانه", "بازیگر", "نویسنده"], correct: 1 },
+            { q: "کارگردان 'سرگیجه'؟", options: ["هیچکاک", "ولز", "وایلد", "هاکس"], correct: 0 },
+            { q: "فیلم 'نابخشوده' اثر کیست؟", options: ["کلینت ایستوود", "فورد", "لئونه", "تارانتینو"], correct: 0 },
+            { q: "در 'تایتانیک' نام الماس چه بود؟", options: ["قلب اقیانوس", "ستاره آفریقا", "کوه نور", "خورشید"], correct: 0 },
+            { q: "فیلم 'ابد و یک روز' اثر کیست؟", options: ["سعید روستایی", "سیدی", "فرهادی", "حقیقی"], correct: 0 },
             { q: "نام قهرمان 'ماتریکس'؟", options: ["مورفیوس", "اسمیت", "نئو", "سایفر"], correct: 2 },
-            { q: "فیلم 'جاذبه' (Gravity) اثر کیست؟", options: ["آلفونسو کوارون", "ایناریتو", "دل تورو", "کامرون"], correct: 0 },
-            { q: "بازیگر نقش اصلی 'لئون حرفه‌ای'؟", options: ["ژان رنو", "گری اولدمن", "وینسنت کسل", "آلن دلون"], correct: 0 },
-            { q: "فیلم 'به خاطر یک مشت دلار' چه سبک وسترنی است؟", options: ["کلاسیک", "اسپاگتی", "مدرن", "پست مدرن"], correct: 1 },
-            { q: "نام شهر بتمن؟", options: ["متروپلیس", "گاتهام", "سنترال سیتی", "استار سیتی"], correct: 1 },
-            { q: "فیلم 'بربادرفته' در زمان کدام جنگ است؟", options: ["جنگ جهانی اول", "جنگ داخلی آمریکا", "جنگ جهانی دوم", "جنگ استقلال"], correct: 1 },
-            { q: "کارگردان فیلم 'تنسی ویلیامز'؟", options: ["الیا کازان", "جان فورد", "بیلی وایلدر", "هیوستون"], correct: 0 },
-            { q: "نام گربه در 'آلیس در سرزمین عجایب'؟", options: ["چشایر", "تام", "سیلوستر", "گارفیلد"], correct: 0 },
-            { q: "فیلم 'تاریک‌ترین ساعت' درباره کیست؟", options: ["هیتلر", "چرچیل", "استالین", "روزولت"], correct: 1 },
-            { q: "بازیگر نقش 'جوکر' در فیلم ۲۰۱۹؟", options: ["واکین فینیکس", "هیت لجر", "جرد لتو", "جک نیکلسون"], correct: 0 },
-            { q: "فیلم 'رستگاری در شاوشنک' بر اساس اثر کیست؟", options: ["استیون کینگ", "آگاتا کریستی", "همینگوی", "داستایوفسکی"], correct: 0 },
-            { q: "نام کوسه در فیلم 'آرواره‌ها' (Jaws)؟", options: ["بروس", "لنی", "کاووس", "شارکی"], correct: 0 },
-            { q: "فیلم 'آگراندیسمان' اثر کیست؟", options: ["آنتونیونی", "فلینی", "پازولینی", "برتولوچی"], correct: 0 },
-            { q: "بازیگر زن فیلم 'صبحانه در تیفانی'؟", options: ["مریلین مونرو", "آدری هپبورن", "الیزابت تیلور", "گریس کلی"], correct: 1 },
-            { q: "فیلم 'جنگ ستارگان' محصول کدام استودیو بود؟", options: ["فاکس قرن بیستم", "وارنر", "دیزنی", "یونیورسال"], correct: 0 },
-            { q: "نام شخصیت هریسون فورد در 'جنگ ستارگان'؟", options: ["لوک اسکای واکر", "هان سولو", "دارت ویدر", "اوبی وان"], correct: 1 },
-            { q: "فیلم 'طعم گیلاس' برنده چه جایزه‌ای شد؟", options: ["اسکار", "نخل طلا", "خرس نقره‌ای", "شیر طلایی"], correct: 1 },
-            { q: "کارگردان 'اوپنهایمر'؟", options: ["کریستوفر نولان", "دنیس ویلنوو", "گرتا گرویگ", "اسکورسیزی"], correct: 0 },
-            { q: "فیلم 'پالپ فیکشن' محصول چه سالی است؟", options: ["۱۹۹۰", "۱۹۹۴", "۱۹۹۸", "۲۰۰۰"], correct: 1 },
-            { q: "نام وکیل در 'کشتن مرغ مقلد'؟", options: ["اتیکوس فینچ", "جو میلر", "تام رابینسون", "پری میسون"], correct: 0 },
-            { q: "بازیگر نقش 'اوپنهایمر'؟", options: ["کیلین مورفی", "رابرت داونی", "مت دیمون", "رامی ملک"], correct: 0 },
-            { q: "فیلم 'مرد ایرلندی' اثر کیست؟", options: ["اسکورسیزی", "کاپولا", "تارانتینو", "نولان"], correct: 0 },
-            { q: "نام بچه در فیلم 'عصر جدید' چاپلین؟", options: ["او نامی ندارد", "جک", "بیلی", "تام"], correct: 0 },
-            { q: "فیلم 'طلای سرخ' اثر کیست؟", options: ["جعفر پناهی", "عباس کیارستمی", "اصغر فرهادی", "امیر نادری"], correct: 0 },
-            { q: "نام کارگردان 'انیمیشن روح'؟", options: ["پیت داکتر", "جان لستر", "برد برد", "اندرو استنتون"], correct: 0 },
+            { q: "فیلم 'جاذبه' اثر کیست؟", options: ["کوارون", "ایناریتو", "دل تورو", "کامرون"], correct: 0 },
+            { q: "بازیگر اصلی 'لئون حرفه‌ای'؟", options: ["ژان رنو", "گری اولدمن", "کسل", "دلون"], correct: 0 },
+            { q: "فیلم 'به خاطر یک مشت دلار' چه سبک است؟", options: ["کلاسیک", "وسترن اسپاگتی", "مدرن", "پست مدرن"], correct: 1 },
+            { q: "نام شهر بتمن؟", options: ["متروپلیس", "گاتهام", "سنترال", "استار"], correct: 1 },
+            { q: "بربادرفته در چه زمانی است؟", options: ["جنگ جهانی ۱", "جنگ داخلی آمریکا", "جنگ جهانی ۲", "انقلاب"], correct: 1 },
+            { q: "کارگردان 'اتوبوسی به نام هوس'؟", options: ["الیا کازان", "فورد", "وایلدر", "هیوستون"], correct: 0 },
+            { q: "نام گربه 'آلیس در سرزمین عجایب'؟", options: ["چشایر", "تام", "سیلوستر", "گارفیلد"], correct: 0 },
+            { q: "تاریک‌ترین ساعت درباره کیست؟", options: ["هیتلر", "وینستون چرچیل", "استالین", "روزولت"], correct: 1 },
+            { q: "بازیگر نقش 'جوکر' ۲۰۱۹؟", options: ["واکین فینیکس", "هیت لجر", "لتو", "نیکلسون"], correct: 0 },
+            { q: "رستگاری در شاوشنک اثر کیست؟", options: ["استیون کینگ", "آگاتا کریستی", "همینگوی", "داستایوفسکی"], correct: 0 },
+            { q: "نام کوسه در 'آرواره‌ها'؟", options: ["بروس", "لنی", "کاووس", "شارکی"], correct: 0 },
+            { q: "فیلم 'آگراندیسمان' اثر کیست؟", options: ["میکل‌آنجلو آنتونیونی", "فلینی", "پازولینی", "برتولوچی"], correct: 0 },
+            { q: "بازیگر زن 'صبحانه در تیفانی'؟", options: ["مونرو", "آدری هپبورن", "تیلور", "کلی"], correct: 1 },
+            { q: "جنگ ستارگان اثر کیست؟", options: ["جورج لوکاس", "اسپیلبرگ", "کاپولا", "اسکات"], correct: 0 },
+            { q: "نام هریسون فورد در 'جنگ ستارگان'؟", options: ["لوک", "هان سولو", "دارت", "اوبی وان"], correct: 1 },
+            { q: "فیلم 'طعم گیلاس' چه برد؟", options: ["اسکار", "نخل طلا", "خرس", "شیر"], correct: 1 },
+            { q: "کارگردان 'اوپنهایمر'؟", options: ["نولان", "ویلنوو", "گرویک", "اسکورسیزی"], correct: 0 },
+            { q: "پالپ فیکشن محصول چه سالی است؟", options: ["۱۹۹۰", "۱۹۹۴", "۱۹۹۸", "۲۰۰۰"], correct: 1 },
+            { q: "نام وکیل 'کشتن مرغ مقلد'؟", options: ["اتیکوس فینچ", "جو میلر", "تام رابینسون", "میسون"], correct: 0 },
+            { q: "بازیگر نقش 'اوپنهایمر'؟", options: ["کیلین مورفی", "داونی", "مت دیمون", "ملک"], correct: 0 },
+            { q: "فیلم 'ایرلندی' اثر کیست؟", options: ["اسکورسیزی", "کاپولا", "تارانتینو", "نولان"], correct: 0 },
+            { q: "نام دختر در 'عصر جدید' چاپلین؟", options: ["پولت گادرد", "السا", "سارا", "مری"], correct: 0 },
+            { q: "فیلم 'طلای سرخ' اثر کیست؟", options: ["جعفر پناهی", "کیارستمی", "فرهادی", "نادری"], correct: 0 },
+            { q: "نام کارگردان انیمیشن 'روح'؟", options: ["پیت داکتر", "لستر", "برد", "استنتون"], correct: 0 },
             { q: "فیلم 'انگل' چند اسکار برد؟", options: ["۳", "۴", "۵", "۲"], correct: 1 },
-            { q: "نام بازیگر نقش 'فارست گامپ'؟", options: ["تام هنکس", "برد پیت", "جانی دپ", "تام کروز"], correct: 0 },
-            { q: "فیلم 'دونده' اثر کدام کارگردان است؟", options: ["امیر نادری", "بهرام بیضایی", "ناصر تقوایی", "داریوش مهرجویی"], correct: 0 },
-            { q: "نام شخصیت زن در 'تایتانیک'؟", options: ["رز", "کیت", "جولیا", "سارا"], correct: 0 },
-            { q: "آخرین فیلم 'استنلی کوبریک'؟", options: ["چشمان کاملاً بسته", "درخشش", "غلاف تمام فلزی", "۲۰۰۱"], correct: 0 }
+            { q: "بازیگر اصلی 'فارست گامپ'؟", options: ["تام هنکس", "برد پیت", "دپ", "کروز"], correct: 0 },
+            { q: "فیلم 'دونده' اثر کیست؟", options: ["امیر نادری", "بیضایی", "تقوایی", "مهرجویی"], correct: 0 },
+            { q: "نام شخصیت زن تایتانیک؟", options: ["رز", "کیت", "جولیا", "سارا"], correct: 0 },
+            { q: "آخرین فیلم 'کوبریک'؟", options: ["Eyes Wide Shut", "Shining", "Full Metal Jacket", "2001"], correct: 0 }
         ];
 
         let gameQuestions = [];
-        let currentLevel = 1;
-        let currentIndex = 0;
-        let totalScore = 0;
+        let currentLvl = 1;
+        let qIdx = 0;
+        let score = 0;
 
-        function shuffle(array) {
-            for (let i = array.length - 1; i > 0; i--) {
+        function shuffle(a) {
+            for (let i = a.length - 1; i > 0; i--) {
                 const j = Math.floor(Math.random() * (i + 1));
-                [array[i], array[j]] = [array[j], array[i]];
+                [a[i], a[j]] = [a[j], a[i]];
             }
-            return array;
+            return a;
         }
 
-        function prepareGame() {
-            const shuffledBank = shuffle(JSON.parse(JSON.stringify(masterBank)));
-            gameQuestions = shuffledBank.slice(0, 20);
-            gameQuestions.forEach(item => {
-                const optionsWithMeta = item.options.map((text, i) => ({ text, isCorrect: i === item.correct }));
-                shuffle(optionsWithMeta);
-                item.options = optionsWithMeta.map(o => o.text);
-                item.correct = optionsWithMeta.findIndex(o => o.isCorrect);
+        function init() {
+            const bank = shuffle(JSON.parse(JSON.stringify(masterBank)));
+            gameQuestions = bank.slice(0, 20);
+            gameQuestions.forEach(q => {
+                const opts = q.options.map((t, i) => ({ t, is: i === q.correct }));
+                shuffle(opts);
+                q.options = opts.map(o => o.t);
+                q.correct = opts.findIndex(o => o.is);
             });
         }
 
-        function loadQuestion() {
-            const startIdx = (currentLevel - 1) * 10;
-            const q = gameQuestions[startIdx + currentIndex];
-            
-            document.getElementById("p-bar").style.width = (currentIndex / 10) * 100 + "%";
-            document.getElementById("level-num").innerText = currentLevel;
-            document.getElementById("q-num").innerText = currentIndex + 1;
+        function loadQ() {
+            const start = (currentLvl - 1) * 10;
+            const q = gameQuestions[start + qIdx];
+            document.getElementById("p-bar").style.width = (qIdx / 10) * 100 + "%";
+            document.getElementById("level-num").innerText = currentLvl;
+            document.getElementById("q-num").innerText = qIdx + 1;
             document.getElementById("question-text").innerText = q.q;
-            
-            const container = document.getElementById("options-container");
-            container.innerHTML = "";
-            q.options.forEach((opt, i) => {
-                const btn = document.createElement("button");
-                btn.className = "option-btn";
-                btn.innerText = opt;
-                btn.onclick = () => checkAnswer(i, btn);
-                container.appendChild(btn);
+            const box = document.getElementById("options-container");
+            box.innerHTML = "";
+            q.options.forEach((o, i) => {
+                const b = document.createElement("button");
+                b.className = "option-btn";
+                b.innerText = o;
+                b.onclick = () => check(i, b);
+                box.appendChild(b);
             });
         }
 
-        function checkAnswer(idx, btn) {
-            const startIdx = (currentLevel - 1) * 10;
-            const q = gameQuestions[startIdx + currentIndex];
-            const btns = document.querySelectorAll(".option-btn");
-            btns.forEach(b => b.onclick = null);
+        function check(i, b) {
+            const start = (currentLvl - 1) * 10;
+            const q = gameQuestions[start + qIdx];
+            const all = document.querySelectorAll(".option-btn");
+            all.forEach(x => x.onclick = null);
 
-            if (idx === q.correct) {
-                btn.classList.add("correct");
-                totalScore++;
-                soundCorrect.play(); // پخش صدای موفقیت
+            if (i === q.correct) {
+                b.classList.add("correct");
+                score++;
+                sndCorrect.currentTime = 0;
+                sndCorrect.play().catch(() => {});
                 tg.HapticFeedback.notificationOccurred('success');
             } else {
-                btn.classList.add("wrong");
-                btns[q.correct].classList.add("correct");
-                soundWrong.play(); // پخش صدای خطا
+                b.classList.add("wrong");
+                all[q.correct].classList.add("correct");
+                sndWrong.currentTime = 0;
+                sndWrong.play().catch(() => {});
                 tg.HapticFeedback.notificationOccurred('error');
             }
 
             setTimeout(() => {
-                currentIndex++;
-                if (currentIndex < 10) {
-                    loadQuestion();
-                } else {
-                    showResult();
-                }
+                qIdx++;
+                if (qIdx < 10) loadQ();
+                else result();
             }, 800);
         }
 
-        function showResult() {
+        function result() {
             document.getElementById("quiz-container").classList.add("hidden");
             document.getElementById("result-container").classList.remove("hidden");
-            const nextBtn = document.getElementById("next-level-btn");
-            
-            if (currentLevel === 1) {
-                document.getElementById("result-text").innerHTML = `مرحله اول تمام شد!<br>امتیاز فعلی: ${totalScore} از ۱۰`;
-                nextBtn.innerText = "شروع مرحله دوم";
-                nextBtn.onclick = () => {
-                    currentLevel = 2;
-                    currentIndex = 0;
+            const btn = document.getElementById("next-level-btn");
+            if (currentLvl === 1) {
+                document.getElementById("result-text").innerHTML = `مرحله ۱ تمام شد!<br>امتیاز: ${score} از ۱۰`;
+                btn.innerText = "شروع مرحله ۲";
+                btn.onclick = () => {
+                    currentLvl = 2; qIdx = 0;
                     document.getElementById("result-container").classList.add("hidden");
                     document.getElementById("quiz-container").classList.remove("hidden");
-                    loadQuestion();
+                    loadQ();
                 };
             } else {
-                soundFinish.play(); // پخش صدای پایان بازی
-                document.getElementById("result-text").innerHTML = `بازی تمام شد!<br>امتیاز نهایی: ${totalScore} از ۲۰`;
-                nextBtn.innerText = "ثبت نهایی در جدول";
-                nextBtn.onclick = () => tg.sendData("امتیاز نهایی: " + totalScore);
+                sndFinish.play().catch(() => {});
+                document.getElementById("result-text").innerHTML = `پایان چالش!<br>امتیاز نهایی: ${score} از ۲۰`;
+                btn.innerText = "ثبت در لیدربورد";
+                btn.onclick = () => tg.sendData("امتیاز نهایی: " + score);
             }
         }
 
-        function startLoading() {
-            let p = 0;
-            let bar = document.getElementById("loading-bar");
-            let txt = document.getElementById("percent");
-            let itv = setInterval(() => {
-                p += Math.floor(Math.random() * 20) + 5;
-                if (p >= 100) {
-                    p = 100;
-                    clearInterval(itv);
-                    prepareGame();
-                    setTimeout(() => {
-                        document.getElementById("loading-screen").style.display = "none";
-                        loadQuestion();
-                    }, 500);
-                }
-                bar.style.width = p + "%";
-                txt.innerText = p + "%";
-            }, 120);
-        }
-
-        window.onload = startLoading;
+        let p = 0;
+        let itv = setInterval(() => {
+            p += Math.floor(Math.random() * 15) + 5;
+            if (p >= 100) {
+                p = 100; clearInterval(itv);
+                init();
+                setTimeout(() => {
+                    document.getElementById("loading-screen").style.display = "none";
+                    loadQ();
+                }, 500);
+            }
+            document.getElementById("loading-bar").style.width = p + "%";
+            document.getElementById("percent").innerText = p + "%";
+        }, 100);
     </script>
 </body>
 </html>
-
