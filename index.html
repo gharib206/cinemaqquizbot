@@ -30,9 +30,48 @@
         
         .progress-text { font-size: 14px; color: var(--tg-theme-text); opacity: 0.6; margin-bottom: 5px; }
         .hidden { display: none; }
+
+        #loading-screen {
+    position: fixed;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background-color: var(--tg-theme-bg-color, #ffffff);
+    display: flex; flex-direction: column;
+    justify-content: center; align-items: center;
+    z-index: 9999;
+}
+
+.progress-container {
+    width: 70%;
+    height: 10px;
+    background-color: #e0e0e0;
+    border-radius: 10px;
+    margin-top: 15px;
+    overflow: hidden;
+}
+
+#progress-bar {
+    width: 0%;
+    height: 100%;
+    background-color: var(--tg-theme-button-color, #248bed); /* هماهنگ با تم تلگرام */
+    transition: width 0.3s ease;
+}
+
+.loading-text {
+    font-family: sans-serif;
+    color: var(--tg-theme-text-color, #000);
+    font-size: 18px;
+}
+        
     </style>
 </head>
 <body>
+
+    <div id="loading-screen">
+    <div class="loading-text">در حال بارگذاری... <span id="percent">0%</span></div>
+    <div class="progress-container">
+        <div id="progress-bar"></div>
+    </div>
+</div>
 
     <div id="quiz-container">
         <div class="progress-text">مرحله <span id="level-num">۱</span> - سوال <span id="q-num">۱</span> از ۱۰</div>
@@ -179,9 +218,36 @@ tg.sendData("امتیاز: " + score);
 }
 
         loadQuestion();
+
+        function startLoading() {
+    let percent = 0;
+    let progressBar = document.getElementById("progress-bar");
+    let percentText = document.getElementById("percent");
+    
+    let interval = setInterval(() => {
+        percent += Math.floor(Math.random() * 10) + 1; // عدد تصادفی برای طبیعی‌تر شدن
+        
+        if (percent >= 100) {
+            percent = 100;
+            clearInterval(interval);
+            // مخفی کردن صفحه لودینگ بعد از ۱ ثانیه
+            setTimeout(() => {
+                document.getElementById("loading-screen").style.display = "none";
+            }, 500);
+        }
+        
+        progressBar.style.width = percent + "%";
+        percentText.innerHTML = percent + "%";
+    }, 150); // سرعت پر شدن (هر ۱۵۰ میلی‌ثانیه)
+}
+
+// اجرای لودینگ به محض باز شدن اپ
+window.onload = startLoading;
+        
     </script>
 </body>
 </html>
+
 
 
 
