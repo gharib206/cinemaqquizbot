@@ -28,7 +28,7 @@
 <body>
 
     <div id="loading-screen">
-        <div style="font-size: 18px; font-weight: bold; margin-bottom: 10px;">در حال گلچین کردن ۲۰ چالش از ۱۰۰ سوال... <span id="percent">0%</span></div>
+        <div style="font-size: 18px; font-weight: bold; margin-bottom: 10px;">در حال تنظیم صدا و سوالات... <span id="percent">0%</span></div>
         <div class="progress-container" style="width: 70%;">
             <div id="loading-bar" class="progress-bar"></div>
         </div>
@@ -56,6 +56,11 @@
     <script>
         const tg = window.Telegram.WebApp;
         tg.expand();
+
+        // تعریف فایل‌های صوتی
+        const soundCorrect = new Audio('https://www.soundjay.com/buttons/sounds/button-37.mp3');
+        const soundWrong = new Audio('https://www.soundjay.com/buttons/sounds/button-10.mp3');
+        const soundFinish = new Audio('https://www.soundjay.com/misc/sounds/bell-ringing-05.mp3');
 
         const masterBank = [
             { q: "اولین انیمیشن بلند تاریخ سینما؟", options: ["پینوکیو", "سفیدبرفی", "بامبی", "سیندرلا"], correct: 1 },
@@ -174,11 +179,8 @@
         }
 
         function prepareGame() {
-            // ۱. رندوم کردن کل بانک
             const shuffledBank = shuffle(JSON.parse(JSON.stringify(masterBank)));
-            // ۲. گلچین ۲۰ سوال اول
             gameQuestions = shuffledBank.slice(0, 20);
-            // ۳. رندوم کردن گزینه‌ها
             gameQuestions.forEach(item => {
                 const optionsWithMeta = item.options.map((text, i) => ({ text, isCorrect: i === item.correct }));
                 shuffle(optionsWithMeta);
@@ -216,10 +218,12 @@
             if (idx === q.correct) {
                 btn.classList.add("correct");
                 totalScore++;
+                soundCorrect.play(); // پخش صدای موفقیت
                 tg.HapticFeedback.notificationOccurred('success');
             } else {
                 btn.classList.add("wrong");
                 btns[q.correct].classList.add("correct");
+                soundWrong.play(); // پخش صدای خطا
                 tg.HapticFeedback.notificationOccurred('error');
             }
 
@@ -249,6 +253,7 @@
                     loadQuestion();
                 };
             } else {
+                soundFinish.play(); // پخش صدای پایان بازی
                 document.getElementById("result-text").innerHTML = `بازی تمام شد!<br>امتیاز نهایی: ${totalScore} از ۲۰`;
                 nextBtn.innerText = "ثبت نهایی در جدول";
                 nextBtn.onclick = () => tg.sendData("امتیاز نهایی: " + totalScore);
