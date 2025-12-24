@@ -174,13 +174,16 @@
         }
 
            function sendResults() {
-    tg.sendData("امتیاز نهایی من: " + score + " از 10");
+    // مطمئن شوید داده ارسالی یک متن ساده یا عدد است
+    const resultString = "امتیاز: " + score; 
+    tg.sendData(resultString);
 }
 
         loadQuestion();
     </script>
 </body>
 </html>
+
 
 
 
