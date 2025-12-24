@@ -16,7 +16,6 @@
         }
         body { background-color: var(--tg-theme-bg); color: var(--tg-theme-text); font-family: sans-serif; margin: 0; padding: 20px; text-align: center; overflow-x: hidden; }
         
-        /* استایل نوار پیشرفت لودینگ و بازی */
         .progress-container { width: 100%; background: #e0e0e0; height: 10px; border-radius: 10px; margin-bottom: 20px; overflow: hidden; }
         .progress-bar { height: 100%; background: var(--tg-theme-btn); width: 0%; transition: width 0.3s ease; }
 
@@ -30,7 +29,6 @@
         .progress-text { font-size: 14px; color: var(--tg-theme-text); opacity: 0.6; margin-bottom: 5px; }
         .hidden { display: none; }
 
-        /* صفحه لودینگ */
         #loading-screen {
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
@@ -47,7 +45,7 @@
 <body>
 
     <div id="loading-screen">
-        <div class="loading-text">در حال بارگذاری... <span id="percent">0%</span></div>
+        <div class="loading-text">در حال بارگذاری چالش... <span id="percent">0%</span></div>
         <div class="loading-progress-container progress-container">
             <div id="loading-bar" class="progress-bar"></div>
         </div>
@@ -60,7 +58,7 @@
         </div>
         
         <div class="card">
-            <h3 id="question-text" style="margin-top: 0;">در حال بارگذاری...</h3>
+            <h3 id="question-text" style="margin-top: 0;">در حال آماده‌سازی سوالات...</h3>
             <div id="options-container"></div>
         </div>
     </div>
@@ -69,15 +67,16 @@
         <div class="card">
             <h2 id="result-title">پایان مرحله!</h2>
             <p id="result-text" style="font-size: 18px;"></p>
-            <button class="option-btn" id="next-level-btn" style="background: var(--tg-theme-btn); color: white;">شروع مرحله دوم</button>
+            <button class="option-btn" id="next-level-btn" style="background: var(--tg-theme-btn); color: white;">ادامه</button>
         </div>
     </div>
 
     <script>
         const tg = window.Telegram.WebApp;
         tg.expand();
-        tg.enableClosingConfirmation(); // تاییدیه برای بستن ناگهانی
+        tg.enableClosingConfirmation();
 
+        // لیست سوالات (بدون تغییر)
         const questionsLevel1 = [
             { q: "اولین انیمیشن بلند تاریخ؟", options: ["پینوکیو", "سفیدبرفی", "فانتزیا", "بامبی"], correct: 1 },
             { q: "کارگردان فهرست شیندلر کیست؟", options: ["نولان", "اسکورسیزی", "اسپیلبرگ", "کامرون"], correct: 2 },
@@ -106,13 +105,40 @@
 
         let currentLevel = 1;
         let currentQuestionIndex = 0;
-        let score = 0; // امتیاز کلی که در طول بازی جمع می‌شود
+        let score = 0;
+        let shuffledQuestions = [];
+
+        // الگوریتم مخلوط کردن آرایه
+        function shuffle(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        }
+
+        function prepareQuestions(levelArray) {
+            // کپی کردن سوالات برای رندوم کردن
+            let newQuestions = JSON.parse(JSON.stringify(levelArray));
+            
+            // ۱. رندوم کردن ترتیب سوالات
+            shuffle(newQuestions);
+
+            // ۲. رندوم کردن گزینه‌ها برای هر سوال
+            newQuestions.forEach(item => {
+                let optionsWithIndex = item.options.map((opt, i) => ({ text: opt, isCorrect: i === item.correct }));
+                shuffle(optionsWithIndex);
+                item.options = optionsWithIndex.map(o => o.text);
+                item.correct = optionsWithIndex.findIndex(o => o.isCorrect);
+            });
+
+            return newQuestions;
+        }
 
         function loadQuestion() {
-            const questions = currentLevel === 1 ? questionsLevel1 : questionsLevel2;
-            const q = questions[currentQuestionIndex];
+            const q = shuffledQuestions[currentQuestionIndex];
             
-            const progress = (currentQuestionIndex / questions.length) * 100;
+            const progress = (currentQuestionIndex / shuffledQuestions.length) * 100;
             document.getElementById("p-bar").style.width = progress + "%";
             
             document.getElementById("level-num").innerText = currentLevel;
@@ -132,14 +158,13 @@
         }
 
         function checkAnswer(selectedIndex, btn) {
-            const questions = currentLevel === 1 ? questionsLevel1 : questionsLevel2;
-            const correctIndex = questions[currentQuestionIndex].correct;
+            const correctIndex = shuffledQuestions[currentQuestionIndex].correct;
             const allButtons = document.querySelectorAll('.option-btn');
             allButtons.forEach(b => b.onclick = null);
 
             if (selectedIndex === correctIndex) {
                 btn.classList.add("correct");
-                score++; // اضافه شدن به امتیاز کلی
+                score++;
                 tg.HapticFeedback.notificationOccurred('success');
             } else {
                 btn.classList.add("wrong");
@@ -149,26 +174,23 @@
 
             setTimeout(() => {
                 currentQuestionIndex++;
-                if (currentQuestionIndex < questions.length) {
+                if (currentQuestionIndex < shuffledQuestions.length) {
                     loadQuestion();
                 } else {
                     document.getElementById("p-bar").style.width = "100%";
                     showResults();
                 }
-            }, 1000);
+            }, 800);
         }
 
         function showResults() {
             document.getElementById("quiz-container").classList.add("hidden");
             document.getElementById("result-container").classList.remove("hidden");
             
-            let levelScore = currentLevel === 1 ? score : (score - 10); // فقط برای نمایش در این مرحله
-            if (currentLevel === 2) levelScore = score; // در مرحله دوم، امتیاز کل را نشان بده
-
             let resultMessage = score >= 15 ? "عالی بود! تو یک دایره‌المعارف سینمایی هستی! 🏆" : 
                                 score >= 8 ? "خوب بود، اطلاعاتت بالاست. 🎬" : "باید بیشتر فیلم ببینی! 🍿";
 
-            document.getElementById("result-text").innerHTML = `${resultMessage}<br>امتیاز کل تا این لحظه: ${score}`;
+            document.getElementById("result-text").innerHTML = `${resultMessage}<br>امتیاز کل: ${score}`;
 
             const nextBtn = document.getElementById("next-level-btn");
             if (currentLevel === 1) {
@@ -183,36 +205,35 @@
         function startLevel2() {
             currentLevel = 2;
             currentQuestionIndex = 0;
-            // دقت: score = 0 حذف شد تا امتیاز مرحله اول حفظ شود
+            shuffledQuestions = prepareQuestions(questionsLevel2); // رندوم کردن سوالات مرحله ۲
             document.getElementById("quiz-container").classList.remove("hidden");
             document.getElementById("result-container").classList.add("hidden");
             loadQuestion();
         }
 
         function sendResults() {
-            // ارسال امتیاز نهایی (حداکثر ۲۰) به تلگرام
             tg.sendData("امتیاز نهایی: " + score);
         }
 
-        // تابع لودینگ
         function startLoading() {
             let percent = 0;
             let loadingBar = document.getElementById("loading-bar");
             let percentText = document.getElementById("percent");
             
             let interval = setInterval(() => {
-                percent += Math.floor(Math.random() * 15) + 5;
+                percent += Math.floor(Math.random() * 20) + 5;
                 if (percent >= 100) {
                     percent = 100;
                     clearInterval(interval);
                     setTimeout(() => {
                         document.getElementById("loading-screen").style.display = "none";
+                        shuffledQuestions = prepareQuestions(questionsLevel1); // رندوم کردن سوالات مرحله ۱ در شروع
                         loadQuestion();
-                    }, 500);
+                    }, 400);
                 }
                 loadingBar.style.width = percent + "%";
                 percentText.innerHTML = percent + "%";
-            }, 100);
+            }, 80);
         }
 
         window.onload = startLoading;
