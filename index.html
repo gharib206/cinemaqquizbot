@@ -57,10 +57,19 @@
         const tg = window.Telegram.WebApp;
         tg.expand();
 
-        // تعریف فایل‌های صوتی
-        const soundCorrect = new Audio('https://www.soundjay.com/buttons/sounds/button-37.mp3');
-        const soundWrong = new Audio('https://www.soundjay.com/buttons/sounds/button-10.mp3');
-        const soundFinish = new Audio('https://www.soundjay.com/misc/sounds/bell-ringing-05.mp3');
+        // تعریف فایل‌های صوتی جدید و با کیفیت
+const soundCorrect = new Audio('https://actions.google.com/sounds/v1/foley/refrigerator_door_close.ogg'); 
+// (یا یک صدای دینگ دیجیتالی)
+const soundCorrectBetter = new Audio('https://www.myinstants.com/media/sounds/correct.mp3');
+
+const soundWrong = new Audio('https://www.myinstants.com/media/sounds/wrong_pX8l6uA.mp3');
+
+const soundFinish = new Audio('https://www.myinstants.com/media/sounds/level-up-191.mp3');
+
+// تنظیم حجم صدا (برای اینکه کاربر اذیت نشود)
+soundCorrectBetter.volume = 0.5;
+soundWrong.volume = 0.4;
+soundFinish.volume = 0.6;
 
         const masterBank = [
             { q: "اولین انیمیشن بلند تاریخ سینما؟", options: ["پینوکیو", "سفیدبرفی", "بامبی", "سیندرلا"], correct: 1 },
@@ -284,3 +293,4 @@
     </script>
 </body>
 </html>
+
