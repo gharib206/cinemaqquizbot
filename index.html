@@ -16,62 +16,42 @@
         }
         body { background-color: var(--tg-theme-bg); color: var(--tg-theme-text); font-family: sans-serif; margin: 0; padding: 20px; text-align: center; overflow-x: hidden; }
         
-        /* استایل نوار وضعیت */
-        .progress-container { width: 100%; background: var(--tg-theme-sec-bg); height: 8px; border-radius: 4px; margin-bottom: 20px; overflow: hidden; }
+        /* استایل نوار پیشرفت لودینگ و بازی */
+        .progress-container { width: 100%; background: #e0e0e0; height: 10px; border-radius: 10px; margin-bottom: 20px; overflow: hidden; }
         .progress-bar { height: 100%; background: var(--tg-theme-btn); width: 0%; transition: width 0.3s ease; }
 
         .card { background: var(--tg-theme-sec-bg); padding: 20px; border-radius: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); margin-top: 10px; }
         
         .option-btn { display: block; width: 100%; padding: 14px; margin: 10px 0; border: none; border-radius: 12px; background: var(--tg-theme-bg); color: var(--tg-theme-text); border: 1px solid rgba(0,0,0,0.1); cursor: pointer; font-size: 16px; transition: all 0.2s ease; font-weight: 500; }
         
-        /* کلاس‌های وضعیت جواب */
         .correct { background-color: var(--color-correct) !important; color: white !important; border-color: var(--color-correct) !important; }
         .wrong { background-color: var(--color-wrong) !important; color: white !important; border-color: var(--color-wrong) !important; }
         
         .progress-text { font-size: 14px; color: var(--tg-theme-text); opacity: 0.6; margin-bottom: 5px; }
         .hidden { display: none; }
 
+        /* صفحه لودینگ */
         #loading-screen {
-    position: fixed;
-    top: 0; left: 0; width: 100%; height: 100%;
-    background-color: var(--tg-theme-bg-color, #ffffff);
-    display: flex; flex-direction: column;
-    justify-content: center; align-items: center;
-    z-index: 9999;
-}
-
-.progress-container {
-    width: 70%;
-    height: 10px;
-    background-color: #e0e0e0;
-    border-radius: 10px;
-    margin-top: 15px;
-    overflow: hidden;
-}
-
-#progress-bar {
-    width: 0%;
-    height: 100%;
-    background-color: var(--tg-theme-button-color, #248bed); /* هماهنگ با تم تلگرام */
-    transition: width 0.3s ease;
-}
-
-.loading-text {
-    font-family: sans-serif;
-    color: var(--tg-theme-text-color, #000);
-    font-size: 18px;
-}
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background-color: var(--tg-theme-bg);
+            display: flex; flex-direction: column;
+            justify-content: center; align-items: center;
+            z-index: 9999;
+        }
+        .loading-text { font-size: 18px; font-weight: bold; margin-bottom: 10px; }
+        .loading-progress-container { width: 70%; }
         
     </style>
 </head>
 <body>
 
     <div id="loading-screen">
-    <div class="loading-text">در حال بارگذاری... <span id="percent">0%</span></div>
-    <div class="progress-container">
-        <div id="progress-bar"></div>
+        <div class="loading-text">در حال بارگذاری... <span id="percent">0%</span></div>
+        <div class="loading-progress-container progress-container">
+            <div id="loading-bar" class="progress-bar"></div>
+        </div>
     </div>
-</div>
 
     <div id="quiz-container">
         <div class="progress-text">مرحله <span id="level-num">۱</span> - سوال <span id="q-num">۱</span> از ۱۰</div>
@@ -89,13 +69,14 @@
         <div class="card">
             <h2 id="result-title">پایان مرحله!</h2>
             <p id="result-text" style="font-size: 18px;"></p>
-            <button class="option-btn" id="next-level-btn" style="background: var(--tg-theme-btn); color: white;" onclick="startLevel2()">شروع مرحله دوم</button>
+            <button class="option-btn" id="next-level-btn" style="background: var(--tg-theme-btn); color: white;">شروع مرحله دوم</button>
         </div>
     </div>
 
     <script>
         const tg = window.Telegram.WebApp;
         tg.expand();
+        tg.enableClosingConfirmation(); // تاییدیه برای بستن ناگهانی
 
         const questionsLevel1 = [
             { q: "اولین انیمیشن بلند تاریخ؟", options: ["پینوکیو", "سفیدبرفی", "فانتزیا", "بامبی"], correct: 1 },
@@ -125,14 +106,13 @@
 
         let currentLevel = 1;
         let currentQuestionIndex = 0;
-        let score = 0;
+        let score = 0; // امتیاز کلی که در طول بازی جمع می‌شود
 
         function loadQuestion() {
             const questions = currentLevel === 1 ? questionsLevel1 : questionsLevel2;
             const q = questions[currentQuestionIndex];
             
-            // آپدیت نوار وضعیت
-            const progress = ((currentQuestionIndex) / questions.length) * 100;
+            const progress = (currentQuestionIndex / questions.length) * 100;
             document.getElementById("p-bar").style.width = progress + "%";
             
             document.getElementById("level-num").innerText = currentLevel;
@@ -154,24 +134,19 @@
         function checkAnswer(selectedIndex, btn) {
             const questions = currentLevel === 1 ? questionsLevel1 : questionsLevel2;
             const correctIndex = questions[currentQuestionIndex].correct;
-            
-            // غیرفعال کردن همه دکمه‌ها برای جلوگیری از کلیک مجدد
             const allButtons = document.querySelectorAll('.option-btn');
             allButtons.forEach(b => b.onclick = null);
 
             if (selectedIndex === correctIndex) {
-                // جواب درست
                 btn.classList.add("correct");
-                score++;
+                score++; // اضافه شدن به امتیاز کلی
                 tg.HapticFeedback.notificationOccurred('success');
             } else {
-                // جواب غلط
                 btn.classList.add("wrong");
-                allButtons[correctIndex].classList.add("correct"); // نشان دادن جواب درست
+                allButtons[correctIndex].classList.add("correct");
                 tg.HapticFeedback.notificationOccurred('error');
             }
 
-            // یک ثانیه مکث و سپس سوال بعدی
             setTimeout(() => {
                 currentQuestionIndex++;
                 if (currentQuestionIndex < questions.length) {
@@ -187,70 +162,61 @@
             document.getElementById("quiz-container").classList.add("hidden");
             document.getElementById("result-container").classList.remove("hidden");
             
-            let resultMessage = "";
-            if (score >= 7) resultMessage = "عالی بود! قهرمان سینما هستی! 🏆";
-            else if (score >= 4) resultMessage = "خوب بود، اما جای پیشرفت داری. 🎬";
-            else resultMessage = "باید فیلم‌های بیشتری ببینی! 🍿";
+            let levelScore = currentLevel === 1 ? score : (score - 10); // فقط برای نمایش در این مرحله
+            if (currentLevel === 2) levelScore = score; // در مرحله دوم، امتیاز کل را نشان بده
 
-            document.getElementById("result-text").innerHTML = `${resultMessage}<br>امتیاز شما: ${score} از ۱۰`;
+            let resultMessage = score >= 15 ? "عالی بود! تو یک دایره‌المعارف سینمایی هستی! 🏆" : 
+                                score >= 8 ? "خوب بود، اطلاعاتت بالاست. 🎬" : "باید بیشتر فیلم ببینی! 🍿";
 
+            document.getElementById("result-text").innerHTML = `${resultMessage}<br>امتیاز کل تا این لحظه: ${score}`;
+
+            const nextBtn = document.getElementById("next-level-btn");
             if (currentLevel === 1) {
-                document.getElementById("next-level-btn").innerText = "رفتن به مرحله دوم";
-                document.getElementById("next-level-btn").onclick = startLevel2;
+                nextBtn.innerText = "رفتن به مرحله دوم";
+                nextBtn.onclick = startLevel2;
             } else {
-                document.getElementById("next-level-btn").innerText = "ارسال نتایج نهایی";
-                document.getElementById("next-level-btn").onclick = sendResults;
+                nextBtn.innerText = "ثبت نهایی امتیاز در جدول";
+                nextBtn.onclick = sendResults;
             }
         }
 
         function startLevel2() {
             currentLevel = 2;
             currentQuestionIndex = 0;
-            score = 0;
+            // دقت: score = 0 حذف شد تا امتیاز مرحله اول حفظ شود
             document.getElementById("quiz-container").classList.remove("hidden");
             document.getElementById("result-container").classList.add("hidden");
             loadQuestion();
         }
 
-           function sendResults() {
-    // کد داخل فایل HTML در گیتهاب
-tg.sendData("امتیاز: " + score);
-}
-
-        loadQuestion();
-
-        function startLoading() {
-    let percent = 0;
-    let progressBar = document.getElementById("progress-bar");
-    let percentText = document.getElementById("percent");
-    
-    let interval = setInterval(() => {
-        percent += Math.floor(Math.random() * 10) + 1; // عدد تصادفی برای طبیعی‌تر شدن
-        
-        if (percent >= 100) {
-            percent = 100;
-            clearInterval(interval);
-            // مخفی کردن صفحه لودینگ بعد از ۱ ثانیه
-            setTimeout(() => {
-                document.getElementById("loading-screen").style.display = "none";
-            }, 500);
+        function sendResults() {
+            // ارسال امتیاز نهایی (حداکثر ۲۰) به تلگرام
+            tg.sendData("امتیاز نهایی: " + score);
         }
-        
-        progressBar.style.width = percent + "%";
-        percentText.innerHTML = percent + "%";
-    }, 150); // سرعت پر شدن (هر ۱۵۰ میلی‌ثانیه)
-}
 
-// اجرای لودینگ به محض باز شدن اپ
-window.onload = startLoading;
+        // تابع لودینگ
+        function startLoading() {
+            let percent = 0;
+            let loadingBar = document.getElementById("loading-bar");
+            let percentText = document.getElementById("percent");
+            
+            let interval = setInterval(() => {
+                percent += Math.floor(Math.random() * 15) + 5;
+                if (percent >= 100) {
+                    percent = 100;
+                    clearInterval(interval);
+                    setTimeout(() => {
+                        document.getElementById("loading-screen").style.display = "none";
+                        loadQuestion();
+                    }, 500);
+                }
+                loadingBar.style.width = percent + "%";
+                percentText.innerHTML = percent + "%";
+            }, 100);
+        }
+
+        window.onload = startLoading;
         
     </script>
 </body>
 </html>
-
-
-
-
-
-
-
