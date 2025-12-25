@@ -29,14 +29,14 @@
 <body>
 
     <div id="loading-screen" class="hidden">
-    <div style="font-size: 18px; font-weight: bold; margin-bottom: 10px;">در حال آماده‌سازی ۱۰۰ چالش سینمایی... <span id="percent">0%</span></div>
-    <div class="progress-container" style="width: 70%;">
-        <div id="loading-bar" class="progress-bar"></div>
+        <div style="font-size: 18px; font-weight: bold; margin-bottom: 10px;">در حال آماده‌سازی ۱۰۰ چالش سینمایی... <span id="percent">0%</span></div>
+        <div class="progress-container" style="width: 70%;">
+            <div id="loading-bar" class="progress-bar"></div>
+        </div>
+        <div id="connection-hint" style="font-size: 12px; opacity: 0.6; margin-top: 15px; max-width: 80%;">
+            💡 اگر لودینگ طولانی شد، از اتصال **فیلترشکن (VPN)** مطمئن شوید.
+        </div>
     </div>
-    <div id="connection-hint" style="font-size: 12px; opacity: 0.6; margin-top: 15px; max-width: 80%;">
-        💡 اگر لودینگ طولانی شد، از اتصال **فیلترشکن (VPN)** مطمئن شوید.
-    </div>
-</div>
 
     <div id="main-menu">
         <h1 style="color: var(--tg-theme-btn); font-size: 2.5rem; margin-bottom: 40px;">🎬 سینما کویز</h1>
@@ -56,7 +56,6 @@
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
             <div style="font-size: 14px; opacity: 0.7;">مرحله <span id="level-num">۱</span> - سوال <span id="q-num">۱</span> از ۱۰</div>
         </div>
-        
         <div class="progress-container">
             <div id="p-bar" class="progress-bar"></div>
         </div>
@@ -78,11 +77,8 @@
         const tg = window.Telegram.WebApp;
         tg.expand();
         tg.enableClosingConfirmation();
-
-        // دسترسی به دکمه بازگشت تلگرام
         const backButton = tg.BackButton;
 
-        // صداها
         const sndCorrect = new Audio('https://rpg.hamsterrepublic.com/ohrrpgce/sounds/confirm.wav');
         const sndWrong = new Audio('https://rpg.hamsterrepublic.com/ohrrpgce/sounds/cancel.wav');
         const sndFinish = new Audio('https://rpg.hamsterrepublic.com/ohrrpgce/sounds/victory.wav');
@@ -140,7 +136,7 @@
             { q: "فیلم 'ابد و یک روز' اثر کیست؟", options: ["سعید روستایی", "سیدی", "فرهادی", "حقیقی"], correct: 0 },
             { q: "نام قهرمان 'ماتریکس'؟", options: ["مورفیوس", "اسمیت", "نئو", "سایفر"], correct: 2 },
             { q: "فیلم 'جاذبه' اثر کیست؟", options: ["کوارون", "ایناریتو", "دل تورو", "کامرون"], correct: 0 },
-            { q: "بازیگر اصلی 'لئون حرفه‌ای'؟", options: ["ژان rنو", "گری اولدمن", "کسل", "دلون"], correct: 0 },
+            { q: "بازیگر اصلی 'لئون حرفه‌ای'؟", options: ["ژان رنو", "گری اولدمن", "کسل", "دلون"], correct: 0 },
             { q: "فیلم 'به خاطر یک مشت دلار' چه سبک است؟", options: ["کلاسیک", "وسترن اسپاگتی", "مدرن", "پست مدرن"], correct: 1 },
             { q: "نام شهر بتمن؟", options: ["متروپلیس", "گاتهام", "سنترال", "استار"], correct: 1 },
             { q: "بربادرفته در چه زمانی است؟", options: ["جنگ جهانی ۱", "جنگ داخلی آمریکا", "جنگ جهانی ۲", "انقلاب"], correct: 1 },
@@ -164,8 +160,6 @@
             { q: "فیلم 'طلای سرخ' اثر کیست؟", options: ["جعفر پناهی", "کیارستمی", "فرهادی", "نادری"], correct: 0 },
             { q: "نام کارگردان انیمیشن 'روح'؟", options: ["پیت داکتر", "لستر", "برد", "استنتون"], correct: 0 },
             { q: "فیلم 'انگل' چند اسکار برد؟", options: ["۳", "۴", "۵", "۲"], correct: 1 },
-            { q: "نام بازیگر نقش 'فارست گامپ'؟", options: ["تام هنکس", "برد پیت", "جانی دپ", "تام کروز"], correct: 0 },
-            { q: "فیلم 'دونده' اثر کدام کارگردان است؟", options: ["امیر نادری", "بهرام بیضایی", "ناصر تقوایی", "داریوش مهرجویی"], correct: 0 },
             { q: "نام شخصیت زن در 'تایتانیک'؟", options: ["رز", "کیت", "جولیا", "سارا"], correct: 0 },
             { q: "آخرین فیلم 'استنلی کوبریک'؟", options: ["چشمان کاملاً بسته", "درخشش", "غلاف تمام فلزی", "۲۰۰۱"], correct: 0 }
         ];
@@ -183,13 +177,10 @@
             return a;
         }
 
-        // مدیریت دکمه بازگشت بومی تلگرام
         backButton.onClick(() => {
             const isAtQuiz = !document.getElementById("quiz-container").classList.contains("hidden");
             const isAtLoading = !document.getElementById("loading-screen").classList.contains("hidden");
-
             if (isAtQuiz || isAtLoading) {
-                // نمایش پاپ‌آپ تایید بومی تلگرام
                 tg.showConfirm("آیا از ادامه مسابقه انصراف می‌دهید؟ امتیاز این مرحله ثبت نخواهد شد.", (ok) => {
                     if (ok) backToMenu();
                 });
@@ -201,7 +192,7 @@
         function openLeaderboard() {
             document.getElementById("main-menu").classList.add("hidden");
             document.getElementById("leaderboard-screen").classList.remove("hidden");
-            backButton.show(); // نمایش دکمه بازگشت تلگرام
+            backButton.show();
             loadLeaderboardData();
         }
 
@@ -211,13 +202,8 @@
             document.getElementById("result-container").classList.add("hidden");
             document.getElementById("loading-screen").classList.add("hidden");
             document.getElementById("main-menu").classList.remove("hidden");
-            
-            backButton.hide(); // مخفی کردن دکمه بازگشت تلگرام در منوی اصلی
-
-            // ریست کردن بازی
-            currentLvl = 1;
-            qIdx = 0;
-            score = 0;
+            backButton.hide();
+            currentLvl = 1; qIdx = 0; score = 0;
         }
 
         async function loadLeaderboardData() {
@@ -236,40 +222,35 @@
         }
 
         function startInitialLoading() {
-    document.getElementById("main-menu").classList.add("hidden");
-    document.getElementById("loading-screen").classList.remove("hidden");
-    backButton.show();
-
-    // تایمر برای چک کردن کندی اینترنت
-    const hintTimeout = setTimeout(() => {
-        const hint = document.getElementById("connection-hint");
-        if (hint) {
-            hint.style.color = "var(--color-wrong)";
-            hint.style.opacity = "1";
-            hint.innerHTML = "⚠️ به نظر می‌رسد سرعت اینترنت کم است یا فیلترشکن قطع می‌باشد!";
-        }
-    }, 7000); // بعد از ۷ ثانیه ظاهر شود
-
-    let p = 0;
-    let itv = setInterval(() => {
-        p += Math.floor(Math.random() * 15) + 5;
-        if (p >= 100) {
-            p = 100;
-            clearInterval(itv);
-            clearTimeout(hintTimeout); // اگر لود شد، تایمر را متوقف کن
-            init();
-            setTimeout(() => {
-                if (!document.getElementById("loading-screen").classList.contains("hidden")) {
-                    document.getElementById("loading-screen").classList.add("hidden");
-                    document.getElementById("quiz-container").classList.remove("hidden");
-                    loadQ();
+            document.getElementById("main-menu").classList.add("hidden");
+            document.getElementById("loading-screen").classList.remove("hidden");
+            backButton.show();
+            const hintTimeout = setTimeout(() => {
+                const hint = document.getElementById("connection-hint");
+                if (hint) {
+                    hint.style.color = "var(--color-wrong)";
+                    hint.style.opacity = "1";
+                    hint.innerHTML = "⚠️ به نظر می‌رسد سرعت اینترنت کم است یا فیلترشکن قطع می‌باشد!";
                 }
-            }, 500);
+            }, 7000);
+            let p = 0;
+            let itv = setInterval(() => {
+                p += Math.floor(Math.random() * 15) + 5;
+                if (p >= 100) {
+                    p = 100; clearInterval(itv); clearTimeout(hintTimeout);
+                    init();
+                    setTimeout(() => {
+                        if (!document.getElementById("loading-screen").classList.contains("hidden")) {
+                            document.getElementById("loading-screen").classList.add("hidden");
+                            document.getElementById("quiz-container").classList.remove("hidden");
+                            loadQ();
+                        }
+                    }, 500);
+                }
+                document.getElementById("loading-bar").style.width = p + "%";
+                document.getElementById("percent").innerText = p + "%";
+            }, 100);
         }
-        document.getElementById("loading-bar").style.width = p + "%";
-        document.getElementById("percent").innerText = p + "%";
-    }, 100);
-}
 
         function init() {
             const bank = shuffle(JSON.parse(JSON.stringify(masterBank)));
@@ -304,7 +285,9 @@
             const start = (currentLvl - 1) * 10;
             const q = gameQuestions[start + qIdx];
             const all = document.querySelectorAll(".option-btn");
-            all.forEach(x => x.onclick = null);
+            
+            // غیرفعال کردن کلیک روی تمام دکمه‌ها بلافاصله
+            all.forEach(btn => btn.onclick = null);
 
             if (i === q.correct) {
                 b.classList.add("correct");
@@ -313,6 +296,7 @@
                 tg.HapticFeedback.notificationOccurred('success');
             } else {
                 b.classList.add("wrong");
+                // پیدا کردن و نمایش گزینه صحیح با استفاده از ایندکس صحیح سوال فعلی
                 all[q.correct].classList.add("correct");
                 sndWrong.currentTime = 0; sndWrong.play().catch(() => {});
                 tg.HapticFeedback.notificationOccurred('error');
@@ -322,7 +306,7 @@
                 qIdx++;
                 if (qIdx < 10) loadQ();
                 else result();
-            }, 800);
+            }, 1000); // افزایش زمان مکث برای دیدن جواب صحیح
         }
 
         function result() {
@@ -351,5 +335,3 @@
     </script>
 </body>
 </html>
-
-
