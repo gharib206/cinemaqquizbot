@@ -191,7 +191,7 @@
             listDiv.innerHTML = "در حال دریافت اطلاعات...";
             try {
                 // آدرس کویب خود را اینجا بگذارید
-                const KOYEB_URL = "https://fun-kissie-gharib206-07c4933b.koyeb.app/"; 
+                const KOYEB_URL = "https://fun-kissie-gharib206-07c4933b.koyeb.app"; 
                 const response = await fetch(`${KOYEB_URL}/api/leaderboard`);
                 const data = await response.json();
                 listDiv.innerHTML = "";
@@ -302,4 +302,5 @@
     </script>
 </body>
 </html>
+
 
