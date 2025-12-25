@@ -236,29 +236,40 @@
         }
 
         function startInitialLoading() {
-            document.getElementById("main-menu").classList.add("hidden");
-            document.getElementById("loading-screen").classList.remove("hidden");
-            backButton.show(); // نمایش دکمه بازگشت در لودینگ
+    document.getElementById("main-menu").classList.add("hidden");
+    document.getElementById("loading-screen").classList.remove("hidden");
+    backButton.show();
 
-            let p = 0;
-            let itv = setInterval(() => {
-                p += Math.floor(Math.random() * 15) + 5;
-                if (p >= 100) {
-                    p = 100; clearInterval(itv);
-                    init();
-                    setTimeout(() => {
-                        // چک می‌کنیم اگر در حین لودینگ انصراف نداده باشد
-                        if (!document.getElementById("loading-screen").classList.contains("hidden")) {
-                            document.getElementById("loading-screen").classList.add("hidden");
-                            document.getElementById("quiz-container").classList.remove("hidden");
-                            loadQ();
-                        }
-                    }, 500);
-                }
-                document.getElementById("loading-bar").style.width = p + "%";
-                document.getElementById("percent").innerText = p + "%";
-            }, 100);
+    // تایمر برای چک کردن کندی اینترنت
+    const hintTimeout = setTimeout(() => {
+        const hint = document.getElementById("connection-hint");
+        if (hint) {
+            hint.style.color = "var(--color-wrong)";
+            hint.style.opacity = "1";
+            hint.innerHTML = "⚠️ به نظر می‌رسد سرعت اینترنت کم است یا فیلترشکن قطع می‌باشد!";
         }
+    }, 7000); // بعد از ۷ ثانیه ظاهر شود
+
+    let p = 0;
+    let itv = setInterval(() => {
+        p += Math.floor(Math.random() * 15) + 5;
+        if (p >= 100) {
+            p = 100;
+            clearInterval(itv);
+            clearTimeout(hintTimeout); // اگر لود شد، تایمر را متوقف کن
+            init();
+            setTimeout(() => {
+                if (!document.getElementById("loading-screen").classList.contains("hidden")) {
+                    document.getElementById("loading-screen").classList.add("hidden");
+                    document.getElementById("quiz-container").classList.remove("hidden");
+                    loadQ();
+                }
+            }, 500);
+        }
+        document.getElementById("loading-bar").style.width = p + "%";
+        document.getElementById("percent").innerText = p + "%";
+    }, 100);
+}
 
         function init() {
             const bank = shuffle(JSON.parse(JSON.stringify(masterBank)));
@@ -340,4 +351,5 @@
     </script>
 </body>
 </html>
+
 
