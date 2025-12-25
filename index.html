@@ -276,6 +276,7 @@
                 const b = document.createElement("button");
                 b.className = "option-btn";
                 b.innerText = o;
+                // ما ایندکس را به تابع check می‌فرستیم
                 b.onclick = () => check(i, b);
                 box.appendChild(b);
             });
@@ -284,21 +285,26 @@
         function check(i, b) {
             const start = (currentLvl - 1) * 10;
             const q = gameQuestions[start + qIdx];
-            const all = document.querySelectorAll(".option-btn");
             
-            // غیرفعال کردن کلیک روی تمام دکمه‌ها بلافاصله
-            all.forEach(btn => btn.onclick = null);
+            // انتخاب فقط دکمه‌های موجود در کانتینر گزینه‌های فعلی
+            const box = document.getElementById("options-container");
+            const currentButtons = box.querySelectorAll(".option-btn");
+            
+            // غیرفعال کردن کلیک روی دکمه‌های فعلی سوال
+            currentButtons.forEach(btn => btn.onclick = null);
 
             if (i === q.correct) {
                 b.classList.add("correct");
                 score++;
-                sndCorrect.currentTime = 0; sndCorrect.play().catch(() => {});
+                sndCorrect.currentTime = 0; 
+                sndCorrect.play().catch(() => {});
                 tg.HapticFeedback.notificationOccurred('success');
             } else {
                 b.classList.add("wrong");
-                // پیدا کردن و نمایش گزینه صحیح با استفاده از ایندکس صحیح سوال فعلی
-                all[q.correct].classList.add("correct");
-                sndWrong.currentTime = 0; sndWrong.play().catch(() => {});
+                // هدف‌گیری دقیق گزینه صحیح بین دکمه‌های لود شده
+                currentButtons[q.correct].classList.add("correct");
+                sndWrong.currentTime = 0; 
+                sndWrong.play().catch(() => {});
                 tg.HapticFeedback.notificationOccurred('error');
             }
 
@@ -306,7 +312,7 @@
                 qIdx++;
                 if (qIdx < 10) loadQ();
                 else result();
-            }, 1000); // افزایش زمان مکث برای دیدن جواب صحیح
+            }, 1200); // افزایش زمان مکث به ۱.۲ ثانیه برای اطمینان از دیده شدن جواب
         }
 
         function result() {
