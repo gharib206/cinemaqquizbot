@@ -3,273 +3,223 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>مسابقه سینمایی</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         :root {
-            --tg-theme-bg: var(--tg-theme-bg-color, #ffffff);
-            --tg-theme-text: var(--tg-theme-text-color, #222222);
-            --tg-theme-btn: var(--tg-theme-button-color, #248bed);
-            --tg-theme-btn-text: var(--tg-theme-button-text-color, #ffffff);
-            --tg-theme-sec-bg: var(--tg-theme-secondary-bg-color, #f4f4f5);
-            --color-correct: #31b545;
-            --color-wrong: #f54242;
+            --primary-color: #e50914; /* قرمز نتفلیکسی */
+            --bg-color: #141414;
+            --card-bg: #2f2f2f;
+            --text-color: #ffffff;
         }
-        body { background-color: var(--tg-theme-bg); color: var(--tg-theme-text); font-family: sans-serif; margin: 0; padding: 20px; text-align: center; overflow-x: hidden; user-select: none; }
-        .progress-container { width: 100%; background: #e0e0e0; height: 10px; border-radius: 10px; margin-bottom: 20px; overflow: hidden; }
-        .progress-bar { height: 100%; background: var(--tg-theme-btn); width: 0%; transition: width 0.3s ease; }
-        .card { background: var(--tg-theme-sec-bg); padding: 20px; border-radius: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); margin-top: 10px; }
-        .option-btn { display: block; width: 100%; padding: 14px; margin: 10px 0; border: none; border-radius: 12px; background: var(--tg-theme-bg); color: var(--tg-theme-text); border: 1px solid rgba(0,0,0,0.1); cursor: pointer; font-size: 16px; transition: all 0.2s ease; font-weight: 500; outline: none; }
-        .correct { background-color: var(--color-correct) !important; color: white !important; border-color: var(--color-correct) !important; }
-        .wrong { background-color: var(--color-wrong) !important; color: white !important; border-color: var(--color-wrong) !important; }
-        .hidden { display: none; }
-        #loading-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: var(--tg-theme-bg); display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 9999; }
+
+        body {
+            font-family: 'Tahoma', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            overflow-x: hidden;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 400px;
+            text-align: center;
+        }
+
+        .hidden { display: none !important; }
+
+        /* استایل دکمه‌ها */
+        .btn {
+            width: 100%;
+            padding: 15px;
+            margin: 10px 0;
+            border: none;
+            border-radius: 10px;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: transform 0.2s, background 0.3s;
+        }
+
+        .btn-primary { background-color: var(--primary-color); color: white; }
+        .btn-secondary { background-color: #444; color: white; }
+        .btn:active { transform: scale(0.98); }
+
+        /* استایل منوی اصلی */
+        #main-menu h1 {
+            font-size: 2.5rem;
+            color: var(--primary-color);
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+            margin-bottom: 40px;
+        }
+
+        /* استایل بخش سوالات و بازی */
+        .card {
+            background-color: var(--card-bg);
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            margin-top: 20px;
+        }
+
+        .option-btn {
+            display: block;
+            width: 100%;
+            padding: 12px;
+            margin: 8px 0;
+            background: #444;
+            color: white;
+            border: 2px solid transparent;
+            border-radius: 8px;
+            text-align: right;
+            cursor: pointer;
+        }
+
+        /* استایل جدول رده‌بندی */
+        .leaderboard-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px;
+            border-bottom: 1px solid #444;
+        }
+        .leaderboard-item:last-child { border-bottom: none; }
+        .rank-icon { font-size: 1.2rem; margin-left: 10px; }
+
+        /* انیمیشن لودینگ */
+        .loader {
+            border: 5px solid #f3f3f3;
+            border-top: 5px solid var(--primary-color);
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     </style>
 </head>
 <body>
 
-    <div id="loading-screen">
-        <div style="font-size: 18px; font-weight: bold; margin-bottom: 10px;">در حال آماده‌سازی ۱۰۰ چالش سینمایی... <span id="percent">0%</span></div>
-        <div class="progress-container" style="width: 70%;">
-            <div id="loading-bar" class="progress-bar"></div>
-        </div>
+<div class="container">
+    <div id="main-menu">
+        <h1>🎬 سینما کویز</h1>
+        <p>به چالش اطلاعات سینمایی خوش آمدید</p>
+        <button class="btn btn-primary" onclick="showScreen('quiz-screen')">🎮 شروع مسابقه</button>
+        <button class="btn btn-secondary" onclick="loadLeaderboard()">🏆 جدول رده‌بندی</button>
     </div>
 
-    <div id="quiz-container">
-        <div style="font-size: 14px; opacity: 0.7;">مرحله <span id="level-num">۱</span> - سوال <span id="q-num">۱</span> از ۱۰</div>
-        <div class="progress-container">
-            <div id="p-bar" class="progress-bar"></div>
-        </div>
+    <div id="quiz-screen" class="hidden">
         <div class="card">
-            <h3 id="question-text">در حال بارگذاری...</h3>
-            <div id="options-container"></div>
+            <div id="loading-area">
+                <div class="loader"></div>
+                <p>در حال آماده‌سازی سوالات...</p>
+            </div>
+            <div id="game-area" class="hidden">
+                <h3 id="question-text">سوال در حال بارگذاری...</h3>
+                <div id="options-container"></div>
+            </div>
         </div>
+        <button class="btn btn-secondary" onclick="showScreen('main-menu')" style="margin-top:20px;">🏠 بازگشت به منو</button>
     </div>
 
-    <div id="result-container" class="hidden">
+    <div id="leaderboard-screen" class="hidden">
         <div class="card">
-            <h2 id="result-title">نتیجه نهایی</h2>
-            <p id="result-text" style="font-size: 18px;"></p>
-            <button class="option-btn" id="next-level-btn" style="background: var(--tg-theme-btn); color: white;">ادامه</button>
+            <h2 style="color: gold;">🏆 ۱۰ نفر برتر</h2>
+            <div id="leaderboard-list">
+                </div>
         </div>
+        <button class="btn btn-secondary" onclick="showScreen('main-menu')" style="margin-top:20px;">🏠 بازگشت به منو</button>
     </div>
+</div>
 
-    <script>
-        const tg = window.Telegram.WebApp;
-        tg.expand();
-        tg.enableClosingConfirmation();
+<script>
+    const tg = window.Telegram.WebApp;
+    tg.expand();
 
-        // صداهای جدید و با کیفیت
-        const sndCorrect = new Audio('https://rpg.hamsterrepublic.com/ohrrpgce/sounds/confirm.wav');
-        const sndWrong = new Audio('https://rpg.hamsterrepublic.com/ohrrpgce/sounds/cancel.wav');
-        const sndFinish = new Audio('https://rpg.hamsterrepublic.com/ohrrpgce/sounds/victory.wav');
+    // --- مدیریت صفحات ---
+    function showScreen(screenId) {
+        document.getElementById('main-menu').classList.add('hidden');
+        document.getElementById('quiz-screen').classList.add('hidden');
+        document.getElementById('leaderboard-screen').classList.add('hidden');
+        
+        document.getElementById(screenId).classList.remove('hidden');
 
-        const masterBank = [
-            { q: "اولین انیمیشن بلند تاریخ سینما؟", options: ["پینوکیو", "سفیدبرفی", "بامبی", "سیندرلا"], correct: 1 },
-            { q: "کارگردان فیلم 'فهرست شیندلر'؟", options: ["نولان", "اسکورسیزی", "اسپیلبرگ", "تارانتینو"], correct: 2 },
-            { q: "جک در تایتانیک بلیط را در چه بازی برد؟", options: ["حکم", "پوکر", "شطرنج", "تخته نرد"], correct: 1 },
-            { q: "بزرگترین جایزه جشنواره فیلم کن؟", options: ["شیر طلایی", "نخل طلا", "خرس طلایی", "اسکار"], correct: 1 },
-            { q: "بازیگر نقش جوکر در 'شوالیه تاریکی'؟", options: ["هیت لجر", "واکین فینیکس", "جک نیکلسون", "جرد لتو"], correct: 0 },
-            { q: "توتم دی‌کاپریو در فیلم 'تلقین'؟", options: ["ساعت", "تاس", "فرفره", "سکه"], correct: 2 },
-            { q: "طولانی‌ترین فیلم برنده اسکار بهترین فیلم؟", options: ["بن هور", "بربادرفته", "تایتانیک", "پدرخوانده"], correct: 1 },
-            { q: "اولین برنده اسکار بهترین فیلم (۱۹۲۹)؟", options: ["بال‌ها", "متروپولیس", "طلوع", "خواننده جاز"], correct: 0 },
-            { q: "فارست گامپ چه چیزی به مردم تعارف می‌کرد؟", options: ["سیب", "نوشابه", "شکلات", "میگو"], correct: 2 },
-            { q: "حلقه یگانه در کجا ساخته شد؟", options: ["ریوندل", "کوه نابودی", "گاندور", "شایر"], correct: 1 },
-            { q: "اولین فیلم ایرانی برنده اسکار؟", options: ["طعم گیلاس", "فروشنده", "جدایی نادر از سیمین", "بچه‌های آسمان"], correct: 2 },
-            { q: "کارگردان فیلم 'روانی' (Psycho)؟", options: ["هیچکاک", "کوبریک", "ولز", "فورد"], correct: 0 },
-            { q: "سلاح جک تورنس در فیلم 'درخشش'؟", options: ["چاقو", "تبر", "اره برقی", "تفنگ"], correct: 1 },
-            { q: "اولین فیلم دنیای سینمایی مارول؟", options: ["ثور", "کاپیتان آمریکا", "مرد آهنی", "هالک"], correct: 2 },
-            { q: "نئو در ماتریکس کدام قرص را خورد؟", options: ["قرمز", "آبی", "سبز", "زرد"], correct: 0 },
-            { q: "کارگردان سه‌گانه 'پدرخوانده'؟", options: ["اسکورسیزی", "کاپولا", "دی‌پالما", "لمت"], correct: 1 },
-            { q: "فیلم 'انگل' محصول کدام کشور است؟", options: ["ژاپن", "چین", "کره جنوبی", "ویتنام"], correct: 2 },
-            { q: "نام هوش مصنوعی در '۲۰۰۱: اودیسه فضایی'؟", options: ["HAL 9000", "TARS", "R2D2", "Jarvis"], correct: 0 },
-            { q: "در پالپ فیکشن، داخل کیف چه بود؟", options: ["طلا", "الماس", "نامعلوم", "اسلحه"], correct: 2 },
-            { q: "بازیگر نقش 'ولورین' در مردان ایکس؟", options: ["تام هاردی", "هیو جکمن", "برد پیت", "کریس ایوانز"], correct: 1 },
-            { q: "کارگردان 'میان‌ستاره‌ای' (Interstellar)؟", options: ["نولان", "ویلنوو", "رایمی", "بایل"], correct: 0 },
-            { q: "برنده نخل طلای ۱۹۹۷ برای ایران؟", options: ["خانه دوست کجاست", "طعم گیلاس", "زیر درختان زیتون", "ده"], correct: 1 },
-            { q: "کدام فیلم بیشترین اسکار را برده (۱۱ اسکار)؟", options: ["ارباب حلقه‌ها ۳", "اوپنهایمر", "گلادیاتور", "شجاع دل"], correct: 0 },
-            { q: "نام ربات کوچک در 'جنگ ستارگان'؟", options: ["BB-8", "R2-D2", "C-3PO", "Wall-E"], correct: 1 },
-            { q: "بازیگر نقش فارست گامپ؟", options: ["تام هنکس", "دنیرو", "پاچینو", "هافمن"], correct: 0 },
-            { q: "فیلم 'همشهری کین' اثر کیست؟", options: ["فورد", "اورسن ولز", "هاکس", "هیچکاک"], correct: 1 },
-            { q: "قهرمان فیلم 'گلادیاتور'؟", options: ["ماکسیموس", "کومودوس", "لئونیداس", "اسپارتاکوس"], correct: 0 },
-            { q: "ژانر فیلم 'نوسفراتو' (Nosferatu)؟", options: ["کمدی", "وحشت", "تخیلی", "وسترن"], correct: 1 },
-            { q: "نام بازیگر نقش 'مایکل کورلئونه'؟", options: ["دنیرو", "ال پاچینو", "براندو", "کان"], correct: 1 },
-            { q: "اولین فیلم انیمیشن پیکسار؟", options: ["Toy Story", "Monsters Inc", "A Bug's Life", "Cars"], correct: 0 },
-            { q: "کارگردان 'هفت سامورایی'؟", options: ["اوذو", "میزوگوچی", "آکیرا کوروساوا", "کیتانو"], correct: 2 },
-            { q: "دیالوگ 'پیشنهادی که نتونه رد کنه' مال کیست؟", options: ["تونی مونتانا", "ویتو کورلئونه", "هنری هیل", "نیکی سانتورو"], correct: 1 },
-            { q: "بازیگر نقش 'ترمیناتور'؟", options: ["استالونه", "شوارتزنگر", "ویلیس", "ون دام"], correct: 1 },
-            { q: "موضوع اصلی فیلم 'تلقین'؟", options: ["سفر زمان", "رویا در رویا", "بیگانگان", "ارواح"], correct: 1 },
-            { q: "برنده اسکار بهترین انیمیشن ۲۰۲۳؟", options: ["پسر و مرغ ماهیخوار", "مرد عنکبوتی", "المنتال", "ماریو"], correct: 0 },
-            { q: "رقص مشهور جان تراولتا در کدام فیلم تارانتینو است؟", options: ["سگ‌های انباری", "داستان عامه‌پسند", "بیل را بکش", "جنگو"], correct: 1 },
-            { q: "بازیگر نقش 'جک اسپارو'؟", options: ["جانی دپ", "برد پیت", "تام کروز", "بلوم"], correct: 0 },
-            { q: "فیلم 'متروپولیس' محصول کجاست؟", options: ["فرانسه", "آلمان", "روسیه", "آمریکا"], correct: 1 },
-            { q: "بازیگر نقش 'هری پاتر'؟", options: ["ردکلیف", "گرینت", "فلتون", "پتینسون"], correct: 0 },
-            { q: "کارگردان فیلم 'انگل'؟", options: ["پارک چان", "بونگ جون-هو", "کیم کی-دوک", "هونگ"], correct: 1 },
-            { q: "دیالوگ 'Why so serious' از کیست؟", options: ["بتمن", "جوکر", "بین", "پنگوئن"], correct: 1 },
-            { q: "فیلم '۱۲ مرد خشمگین' کجا می‌گذرد؟", options: ["زندان", "یک اتاق", "خیابان", "پارک"], correct: 1 },
-            { q: "شهر فیلم 'هفت' (Se7en)؟", options: ["نیویورک", "شیکاگو", "نامعلوم", "لس آنجلس"], correct: 2 },
-            { q: "قهرمان 'شجاع دل'؟", options: ["ویلیام والاس", "رابرت بروس", "ریچارد", "لیر"], correct: 0 },
-            { q: "اولین فیلم بلند 'کیارستمی'؟", options: ["مسافر", "گزارش", "تجربه", "نان و کوچه"], correct: 1 },
-            { q: "بازیگر زن 'لالالند'؟", options: ["واتسون", "اما استون", "لارنس", "رابی"], correct: 1 },
-            { q: "کارگردان 'برخورد نزدیک از نوع سوم'؟", options: ["لوکاس", "اسپیلبرگ", "نولان", "اسکات"], correct: 1 },
-            { q: "فیلم 'راننده تاکسی' اثر کیست؟", options: ["کاپولا", "اسکورسیزی", "پاچینو", "دنیرو"], correct: 1 },
-            { q: "نام کوتوله 'ارباب حلقه‌ها'؟", options: ["گیملی", "لگولاس", "آراگورن", "فرودو"], correct: 0 },
-            { q: "بازیگر 'آیرون من'؟", options: ["همسورث", "رابرت داونی جونیور", "رافلو", "ایوانز"], correct: 1 },
-            { q: "فیلم 'سکوت بره‌ها' چه ژانری است؟", options: ["کمدی", "وحشت روانشناختی", "تخیلی", "اکشن"], correct: 1 },
-            { q: "کارگردان 'آواتار'؟", options: ["جیمز کامرون", "اسکات", "اسنایدر", "بی"], correct: 0 },
-            { q: "سیاره اصلی در 'تل‌ماسه'؟", options: ["تاتویین", "آراکیس", "پاندورا", "کریپتون"], correct: 1 },
-            { q: "فیلم 'گاو' اثر کیست؟", options: ["کیمیایی", "داریوش مهرجویی", "تقوایی", "حاتمی"], correct: 1 },
-            { q: "برنده اسکار بهترین فیلم ۲۰۲۴؟", options: ["اوپنهایمر", "باربی", "قاتلان ماه", "بیچارگان"], correct: 0 },
-            { q: "نام گاوچران در داستان اسباب‌بازی؟", options: ["وودی", "باز", "سیدی", "رکس"], correct: 0 },
-            { q: "بازیگر نقش 'جان ویک'؟", options: ["تام هاردی", "کیانو ریوز", "استاتهام", "کیج"], correct: 1 },
-            { q: "فیلم 'اودیسه فضایی' مال چه سالی است؟", options: ["۱۹۶۸", "۱۹۷۵", "۱۹۸۰", "۱۹۶۰"], correct: 0 },
-            { q: "کدام کارگردان 'استاد تعلیق' است؟", options: ["هیچکاک", "کارپنتر", "کریون", "وان"], correct: 0 },
-            { q: "نام سگ 'جادوگر شهر از'؟", options: ["توتو", "لاسو", "رکس", "اسنوپی"], correct: 0 },
-            { q: "فیلم 'باشگاه مشت‌زنی' اثر کیست؟", options: ["دیوید فینچر", "نولان", "آرونوفسکی", "بویل"], correct: 0 },
-            { q: "دیالوگ 'Here's Johnny' در کدام فیلم است؟", options: ["روانی", "درخشش", "هالووین", "اره"], correct: 1 },
-            { q: "نام کشتی در فیلم 'بیگانه'؟", options: ["نوسترومو", "اینترپرایز", "فالکون", "دیسکاوری"], correct: 0 },
-            { q: "اولین فیلم رنگی کامل؟", options: ["بربادرفته", "جادوگر شهر از", "بکی شارپ", "سفیدبرفی"], correct: 2 },
-            { q: "بازیگر 'شرلوک هولمز' گای ریچی؟", options: ["کامبربچ", "رابرت داونی جونیور", "لا", "کویل"], correct: 1 },
-            { q: "همشهری کین درباره کیست؟", options: ["سیاستمدار", "غول رسانه", "بازیگر", "نویسنده"], correct: 1 },
-            { q: "کارگردان 'سرگیجه'؟", options: ["هیچکاک", "ولز", "وایلد", "هاکس"], correct: 0 },
-            { q: "فیلم 'نابخشوده' اثر کیست؟", options: ["کلینت ایستوود", "فورد", "لئونه", "تارانتینو"], correct: 0 },
-            { q: "در 'تایتانیک' نام الماس چه بود؟", options: ["قلب اقیانوس", "ستاره آفریقا", "کوه نور", "خورشید"], correct: 0 },
-            { q: "فیلم 'ابد و یک روز' اثر کیست؟", options: ["سعید روستایی", "سیدی", "فرهادی", "حقیقی"], correct: 0 },
-            { q: "نام قهرمان 'ماتریکس'؟", options: ["مورفیوس", "اسمیت", "نئو", "سایفر"], correct: 2 },
-            { q: "فیلم 'جاذبه' اثر کیست؟", options: ["کوارون", "ایناریتو", "دل تورو", "کامرون"], correct: 0 },
-            { q: "بازیگر اصلی 'لئون حرفه‌ای'؟", options: ["ژان رنو", "گری اولدمن", "کسل", "دلون"], correct: 0 },
-            { q: "فیلم 'به خاطر یک مشت دلار' چه سبک است؟", options: ["کلاسیک", "وسترن اسپاگتی", "مدرن", "پست مدرن"], correct: 1 },
-            { q: "نام شهر بتمن؟", options: ["متروپلیس", "گاتهام", "سنترال", "استار"], correct: 1 },
-            { q: "بربادرفته در چه زمانی است؟", options: ["جنگ جهانی ۱", "جنگ داخلی آمریکا", "جنگ جهانی ۲", "انقلاب"], correct: 1 },
-            { q: "کارگردان 'اتوبوسی به نام هوس'؟", options: ["الیا کازان", "فورد", "وایلدر", "هیوستون"], correct: 0 },
-            { q: "نام گربه 'آلیس در سرزمین عجایب'؟", options: ["چشایر", "تام", "سیلوستر", "گارفیلد"], correct: 0 },
-            { q: "تاریک‌ترین ساعت درباره کیست؟", options: ["هیتلر", "وینستون چرچیل", "استالین", "روزولت"], correct: 1 },
-            { q: "بازیگر نقش 'جوکر' ۲۰۱۹؟", options: ["واکین فینیکس", "هیت لجر", "لتو", "نیکلسون"], correct: 0 },
-            { q: "رستگاری در شاوشنک اثر کیست؟", options: ["استیون کینگ", "آگاتا کریستی", "همینگوی", "داستایوفسکی"], correct: 0 },
-            { q: "نام کوسه در 'آرواره‌ها'؟", options: ["بروس", "لنی", "کاووس", "شارکی"], correct: 0 },
-            { q: "فیلم 'آگراندیسمان' اثر کیست؟", options: ["میکل‌آنجلو آنتونیونی", "فلینی", "پازولینی", "برتولوچی"], correct: 0 },
-            { q: "بازیگر زن 'صبحانه در تیفانی'؟", options: ["مونرو", "آدری هپبورن", "تیلور", "کلی"], correct: 1 },
-            { q: "جنگ ستارگان اثر کیست؟", options: ["جورج لوکاس", "اسپیلبرگ", "کاپولا", "اسکات"], correct: 0 },
-            { q: "نام هریسون فورد در 'جنگ ستارگان'؟", options: ["لوک", "هان سولو", "دارت", "اوبی وان"], correct: 1 },
-            { q: "فیلم 'طعم گیلاس' چه برد؟", options: ["اسکار", "نخل طلا", "خرس", "شیر"], correct: 1 },
-            { q: "کارگردان 'اوپنهایمر'؟", options: ["نولان", "ویلنوو", "گرویک", "اسکورسیزی"], correct: 0 },
-            { q: "پالپ فیکشن محصول چه سالی است؟", options: ["۱۹۹۰", "۱۹۹۴", "۱۹۹۸", "۲۰۰۰"], correct: 1 },
-            { q: "نام وکیل 'کشتن مرغ مقلد'؟", options: ["اتیکوس فینچ", "جو میلر", "تام رابینسون", "میسون"], correct: 0 },
-            { q: "بازیگر نقش 'اوپنهایمر'؟", options: ["کیلین مورفی", "داونی", "مت دیمون", "ملک"], correct: 0 },
-            { q: "فیلم 'ایرلندی' اثر کیست؟", options: ["اسکورسیزی", "کاپولا", "تارانتینو", "نولان"], correct: 0 },
-            { q: "نام دختر در 'عصر جدید' چاپلین؟", options: ["پولت گادرد", "السا", "سارا", "مری"], correct: 0 },
-            { q: "فیلم 'طلای سرخ' اثر کیست؟", options: ["جعفر پناهی", "کیارستمی", "فرهادی", "نادری"], correct: 0 },
-            { q: "نام کارگردان انیمیشن 'روح'؟", options: ["پیت داکتر", "لستر", "برد", "استنتون"], correct: 0 },
-            { q: "فیلم 'انگل' چند اسکار برد؟", options: ["۳", "۴", "۵", "۲"], correct: 1 },
-            { q: "بازیگر اصلی 'فارست گامپ'؟", options: ["تام هنکس", "برد پیت", "دپ", "کروز"], correct: 0 },
-            { q: "فیلم 'دونده' اثر کیست؟", options: ["امیر نادری", "بیضایی", "تقوایی", "مهرجویی"], correct: 0 },
-            { q: "نام شخصیت زن تایتانیک؟", options: ["رز", "کیت", "جولیا", "سارا"], correct: 0 },
-            { q: "آخرین فیلم 'کوبریک'؟", options: ["Eyes Wide Shut", "Shining", "Full Metal Jacket", "2001"], correct: 0 }
-        ];
-
-        let gameQuestions = [];
-        let currentLvl = 1;
-        let qIdx = 0;
-        let score = 0;
-
-        function shuffle(a) {
-            for (let i = a.length - 1; i > 0; i--) {
-                const j = Math.floor(Math.random() * (i + 1));
-                [a[i], a[j]] = [a[j], a[i]];
-            }
-            return a;
+        if (screenId === 'quiz-screen') {
+            startQuiz();
         }
+    }
 
-        function init() {
-            const bank = shuffle(JSON.parse(JSON.stringify(masterBank)));
-            gameQuestions = bank.slice(0, 20);
-            gameQuestions.forEach(q => {
-                const opts = q.options.map((t, i) => ({ t, is: i === q.correct }));
-                shuffle(opts);
-                q.options = opts.map(o => o.t);
-                q.correct = opts.findIndex(o => o.is);
+    // --- منطق بازی (نمونه ساده شده) ---
+    function startQuiz() {
+        setTimeout(() => {
+            document.getElementById('loading-area').classList.add('hidden');
+            document.getElementById('game-area').classList.remove('hidden');
+            loadQuestion();
+        }, 1500);
+    }
+
+    function loadQuestion() {
+        document.getElementById('question-text').innerText = "کارگردان فیلم 'Oppenheimer' کیست؟";
+        const options = ["کریستوفر نولان", "استیون اسپیلبرگ", "مارتین اسکورسیزی", "جیمز کامرون"];
+        const container = document.getElementById('options-container');
+        container.innerHTML = "";
+        
+        options.forEach(opt => {
+            const btn = document.createElement('button');
+            btn.className = 'option-btn';
+            btn.innerText = opt;
+            btn.onclick = () => finishGame(opt === "کریستوفر نولان" ? 100 : 0);
+            container.appendChild(btn);
+        });
+    }
+
+    function finishGame(score) {
+        tg.sendData(`امتیاز: ${score}`);
+        tg.close();
+    }
+
+    // --- منطق جدول رده‌بندی (اتصال به API سرور) ---
+    async function loadLeaderboard() {
+        showScreen('leaderboard-screen');
+        const listDiv = document.getElementById('leaderboard-list');
+        listDiv.innerHTML = '<div class="loader"></div>';
+
+        try {
+            // آدرس اپلیکیشن خود در کویب را اینجا قرار دهید
+            const KOYEB_URL = "https://fun-kissie-gharib206-07c4933b.koyeb.app/"; 
+            const response = await fetch(`${KOYEB_URL}/api/leaderboard`);
+            const data = await response.json();
+
+            listDiv.innerHTML = "";
+            if (data.length === 0) {
+                listDiv.innerHTML = "<p>هنوز امتیازی ثبت نشده است.</p>";
+                return;
+            }
+
+            data.forEach((item, index) => {
+                let icon = "🔹";
+                if (index === 0) icon = "🥇";
+                else if (index === 1) icon = "🥈";
+                else if (index === 2) icon = "🥉";
+
+                listDiv.innerHTML += `
+                    <div class="leaderboard-item">
+                        <span><span class="rank-icon">${icon}</span> ${item.name}</span>
+                        <b>${item.score}</b>
+                    </div>
+                `;
             });
+        } catch (error) {
+            listDiv.innerHTML = "<p style='color:red;'>خطا در بارگذاری اطلاعات! ❌</p>";
         }
+    }
+</script>
 
-        function loadQ() {
-            const start = (currentLvl - 1) * 10;
-            const q = gameQuestions[start + qIdx];
-            document.getElementById("p-bar").style.width = (qIdx / 10) * 100 + "%";
-            document.getElementById("level-num").innerText = currentLvl;
-            document.getElementById("q-num").innerText = qIdx + 1;
-            document.getElementById("question-text").innerText = q.q;
-            const box = document.getElementById("options-container");
-            box.innerHTML = "";
-            q.options.forEach((o, i) => {
-                const b = document.createElement("button");
-                b.className = "option-btn";
-                b.innerText = o;
-                b.onclick = () => check(i, b);
-                box.appendChild(b);
-            });
-        }
-
-        function check(i, b) {
-            const start = (currentLvl - 1) * 10;
-            const q = gameQuestions[start + qIdx];
-            const all = document.querySelectorAll(".option-btn");
-            all.forEach(x => x.onclick = null);
-
-            if (i === q.correct) {
-                b.classList.add("correct");
-                score++;
-                sndCorrect.currentTime = 0;
-                sndCorrect.play().catch(() => {});
-                tg.HapticFeedback.notificationOccurred('success');
-            } else {
-                b.classList.add("wrong");
-                all[q.correct].classList.add("correct");
-                sndWrong.currentTime = 0;
-                sndWrong.play().catch(() => {});
-                tg.HapticFeedback.notificationOccurred('error');
-            }
-
-            setTimeout(() => {
-                qIdx++;
-                if (qIdx < 10) loadQ();
-                else result();
-            }, 800);
-        }
-
-        function result() {
-            document.getElementById("quiz-container").classList.add("hidden");
-            document.getElementById("result-container").classList.remove("hidden");
-            const btn = document.getElementById("next-level-btn");
-            if (currentLvl === 1) {
-                document.getElementById("result-text").innerHTML = `مرحله ۱ تمام شد!<br>امتیاز: ${score} از ۱۰`;
-                btn.innerText = "شروع مرحله ۲";
-                btn.onclick = () => {
-                    currentLvl = 2; qIdx = 0;
-                    document.getElementById("result-container").classList.add("hidden");
-                    document.getElementById("quiz-container").classList.remove("hidden");
-                    loadQ();
-                };
-            } else {
-                sndFinish.play().catch(() => {});
-                document.getElementById("result-text").innerHTML = `پایان چالش!<br>امتیاز نهایی: ${score} از ۲۰`;
-                btn.innerText = "ثبت در لیدربورد";
-                btn.onclick = () => tg.sendData("امتیاز نهایی: " + score);
-            }
-        }
-
-        let p = 0;
-        let itv = setInterval(() => {
-            p += Math.floor(Math.random() * 15) + 5;
-            if (p >= 100) {
-                p = 100; clearInterval(itv);
-                init();
-                setTimeout(() => {
-                    document.getElementById("loading-screen").style.display = "none";
-                    loadQ();
-                }, 500);
-            }
-            document.getElementById("loading-bar").style.width = p + "%";
-            document.getElementById("percent").innerText = p + "%";
-        }, 100);
-    </script>
 </body>
 </html>
