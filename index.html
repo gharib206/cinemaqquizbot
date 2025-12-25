@@ -52,7 +52,6 @@
     <div id="quiz-container" class="hidden">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
             <div style="font-size: 14px; opacity: 0.7;">مرحله <span id="level-num">۱</span> - سوال <span id="q-num">۱</span> از ۱۰</div>
-            <button onclick="quitGame()" style="background: none; border: none; color: var(--color-wrong); cursor: pointer; font-weight: bold; font-size: 14px;">❌ انصراف</button>
         </div>
         
         <div class="progress-container">
@@ -76,6 +75,9 @@
         const tg = window.Telegram.WebApp;
         tg.expand();
         tg.enableClosingConfirmation();
+
+        // دسترسی به دکمه بازگشت تلگرام
+        const backButton = tg.BackButton;
 
         // صداها
         const sndCorrect = new Audio('https://rpg.hamsterrepublic.com/ohrrpgce/sounds/confirm.wav');
@@ -135,7 +137,7 @@
             { q: "فیلم 'ابد و یک روز' اثر کیست؟", options: ["سعید روستایی", "سیدی", "فرهادی", "حقیقی"], correct: 0 },
             { q: "نام قهرمان 'ماتریکس'؟", options: ["مورفیوس", "اسمیت", "نئو", "سایفر"], correct: 2 },
             { q: "فیلم 'جاذبه' اثر کیست؟", options: ["کوارون", "ایناریتو", "دل تورو", "کامرون"], correct: 0 },
-            { q: "بازیگر اصلی 'لئون حرفه‌ای'؟", options: ["ژان رنو", "گری اولدمن", "کسل", "دلون"], correct: 0 },
+            { q: "بازیگر اصلی 'لئون حرفه‌ای'؟", options: ["ژان rنو", "گری اولدمن", "کسل", "دلون"], correct: 0 },
             { q: "فیلم 'به خاطر یک مشت دلار' چه سبک است؟", options: ["کلاسیک", "وسترن اسپاگتی", "مدرن", "پست مدرن"], correct: 1 },
             { q: "نام شهر بتمن؟", options: ["متروپلیس", "گاتهام", "سنترال", "استار"], correct: 1 },
             { q: "بربادرفته در چه زمانی است؟", options: ["جنگ جهانی ۱", "جنگ داخلی آمریکا", "جنگ جهانی ۲", "انقلاب"], correct: 1 },
@@ -178,25 +180,49 @@
             return a;
         }
 
-        // منوی اصلی و جابجایی صفحات
+        // مدیریت دکمه بازگشت بومی تلگرام
+        backButton.onClick(() => {
+            const isAtQuiz = !document.getElementById("quiz-container").classList.contains("hidden");
+            const isAtLoading = !document.getElementById("loading-screen").classList.contains("hidden");
+
+            if (isAtQuiz || isAtLoading) {
+                // نمایش پاپ‌آپ تایید بومی تلگرام
+                tg.showConfirm("آیا از ادامه مسابقه انصراف می‌دهید؟ امتیاز این مرحله ثبت نخواهد شد.", (ok) => {
+                    if (ok) backToMenu();
+                });
+            } else {
+                backToMenu();
+            }
+        });
+
         function openLeaderboard() {
             document.getElementById("main-menu").classList.add("hidden");
             document.getElementById("leaderboard-screen").classList.remove("hidden");
+            backButton.show(); // نمایش دکمه بازگشت تلگرام
             loadLeaderboardData();
         }
 
         function backToMenu() {
             document.getElementById("leaderboard-screen").classList.add("hidden");
+            document.getElementById("quiz-container").classList.add("hidden");
+            document.getElementById("result-container").classList.add("hidden");
+            document.getElementById("loading-screen").classList.add("hidden");
             document.getElementById("main-menu").classList.remove("hidden");
+            
+            backButton.hide(); // مخفی کردن دکمه بازگشت تلگرام در منوی اصلی
+
+            // ریست کردن بازی
+            currentLvl = 1;
+            qIdx = 0;
+            score = 0;
         }
 
         async function loadLeaderboardData() {
             const listDiv = document.getElementById("leaderboard-list");
             listDiv.innerHTML = "در حال دریافت اطلاعات...";
             try {
-                // آدرس کویب خود را اینجا بگذارید
                 const KOYEB_URL = "https://fun-kissie-gharib206-07c4933b.koyeb.app"; 
-                const response = await fetch(`${KOYEB_URL}/api/leaderboard`);
+                const response = await fetch(`${KOYEB_URL}/api/leaderboard?t=${Date.now()}`);
                 const data = await response.json();
                 listDiv.innerHTML = "";
                 data.forEach((item, index) => {
@@ -209,6 +235,8 @@
         function startInitialLoading() {
             document.getElementById("main-menu").classList.add("hidden");
             document.getElementById("loading-screen").classList.remove("hidden");
+            backButton.show(); // نمایش دکمه بازگشت در لودینگ
+
             let p = 0;
             let itv = setInterval(() => {
                 p += Math.floor(Math.random() * 15) + 5;
@@ -216,9 +244,12 @@
                     p = 100; clearInterval(itv);
                     init();
                     setTimeout(() => {
-                        document.getElementById("loading-screen").classList.add("hidden");
-                        document.getElementById("quiz-container").classList.remove("hidden");
-                        loadQ();
+                        // چک می‌کنیم اگر در حین لودینگ انصراف نداده باشد
+                        if (!document.getElementById("loading-screen").classList.contains("hidden")) {
+                            document.getElementById("loading-screen").classList.add("hidden");
+                            document.getElementById("quiz-container").classList.remove("hidden");
+                            loadQ();
+                        }
                     }, 500);
                 }
                 document.getElementById("loading-bar").style.width = p + "%";
@@ -303,26 +334,6 @@
                 };
             }
         }
-
-        function quitGame() {
-            // نمایش یک تاییدیه ساده تلگرامی (اختیاری)
-            if (confirm("آیا از ادامه مسابقه انصراف می‌دهید؟ امتیاز این مرحله ثبت نخواهد شد.")) {
-                // ریست کردن متغیرهای بازی برای شروع مجدد در آینده
-                currentLvl = 1;
-                qIdx = 0;
-                score = 0;
-                
-                // بازگشت به منوی اصلی
-                document.getElementById("quiz-container").classList.add("hidden");
-                document.getElementById("main-menu").classList.remove("hidden");
-                
-                // بستن تاییدیه خروج تلگرام (اگر فعال بود)
-                tg.MainButton.hide();
-            }
-        }
     </script>
 </body>
 </html>
-
-
-
