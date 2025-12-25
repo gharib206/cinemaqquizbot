@@ -50,7 +50,11 @@
     </div>
 
     <div id="quiz-container" class="hidden">
-        <div style="font-size: 14px; opacity: 0.7;">مرحله <span id="level-num">۱</span> - سوال <span id="q-num">۱</span> از ۱۰</div>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+            <div style="font-size: 14px; opacity: 0.7;">مرحله <span id="level-num">۱</span> - سوال <span id="q-num">۱</span> از ۱۰</div>
+            <button onclick="quitGame()" style="background: none; border: none; color: var(--color-wrong); cursor: pointer; font-weight: bold; font-size: 14px;">❌ انصراف</button>
+        </div>
+        
         <div class="progress-container">
             <div id="p-bar" class="progress-bar"></div>
         </div>
@@ -299,8 +303,26 @@
                 };
             }
         }
+
+        function quitGame() {
+            // نمایش یک تاییدیه ساده تلگرامی (اختیاری)
+            if (confirm("آیا از ادامه مسابقه انصراف می‌دهید؟ امتیاز این مرحله ثبت نخواهد شد.")) {
+                // ریست کردن متغیرهای بازی برای شروع مجدد در آینده
+                currentLvl = 1;
+                qIdx = 0;
+                score = 0;
+                
+                // بازگشت به منوی اصلی
+                document.getElementById("quiz-container").classList.add("hidden");
+                document.getElementById("main-menu").classList.remove("hidden");
+                
+                // بستن تاییدیه خروج تلگرام (اگر فعال بود)
+                tg.MainButton.hide();
+            }
+        }
     </script>
 </body>
 </html>
+
 
 
